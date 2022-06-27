@@ -1,0 +1,14 @@
+Node*	alloc_node(Symbol*);
+Symbol*	alloc_func(Function*);
+Symbol*	alloc_number(double);
+Symbol*	alloc_var(char);
+void	cleanup(void);
+void*	ecalloc(long, size_t);
+void*	emalloc(size_t);
+void	p_cleanup(Parser*);
+Parser*	p_init(char*);
+void	parse(Parser*);
+void	print_symbol(Symbol*);
+void	print_tree(Node*);
+char*	readall(FILE*);
+size_t	strappend(char*, char, size_t, size_t);
