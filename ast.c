@@ -98,7 +98,7 @@ func_alloc(char *func)
 }
 
 Symbol*
-lparen_alloc()
+lparen_alloc(void)
 {
 	Symbol *sym;
 
@@ -134,7 +134,7 @@ operator_alloc(char op)
 }
 
 Symbol*
-rparen_alloc()
+rparen_alloc(void)
 {
 	Symbol *sym;
 
