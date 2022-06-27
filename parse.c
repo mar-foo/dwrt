@@ -335,7 +335,7 @@ parse(Parser *p)
 			break;
 		default:
 			stack_cleanup(op_stack);
-			stack_cleanup (node_stack);
+			stack_cleanup(node_stack);
 			return -1;
 		}
 	}
