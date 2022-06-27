@@ -30,7 +30,6 @@
 
 static char	l_getc(Lexer*);
 static Lexer*	l_init(char*);
-static void	le_cleanup(Lexeme*);
 static Lexeme*	lex(Lexer*);
 
 Lexeme*
@@ -96,7 +95,7 @@ lex(Lexer *l)
 			case '/':
 				switch(l->state) {
 				case LS_WS:
-					result->type = LE_SYMBOL;
+					result->type = LE_OPERATOR;
 					result->len = strappend(result->lexeme, c, offset++, result->len);
 					return result;
 				default:
@@ -118,6 +117,30 @@ lex(Lexer *l)
 					return result;
 				}
 				break;
+			case '(':
+				switch(l->state) {
+				case LS_WS:
+					result->type = LE_LPAREN;
+					result->len = strappend(result->lexeme, c, offset++, result->len);
+					return result;
+				default:
+					l->pos--;
+					l->state = LS_WS;
+					return result;
+				}
+				break;
+			case ')':
+				switch(l->state) {
+				case LS_WS:
+					result->type = LE_RPAREN;
+					result->len = strappend(result->lexeme, c, offset++, result->len);
+					return result;
+				default:
+					l->pos--;
+					l->state = LS_WS;
+					return result;
+				}
+				break;
 			case EOF:
 				result->type = LE_EOF;
 				return result;
@@ -135,13 +158,6 @@ lex(Lexer *l)
 	return result;
 }
 
-static void
-le_cleanup(Lexeme *lexeme)
-{
-		free(lexeme->lexeme);
-		free(lexeme);
-}
-
 static Lexer*
 l_init(char *filename)
 {
@@ -150,7 +166,7 @@ l_init(char *filename)
 
 	l = emalloc(sizeof(Lexer));
 	l->filename = filename,
-	l->err = emalloc(0),
+	l->err = NULL,
 	l->line = 1,
 	l->state = LS_WS;
 
@@ -184,22 +200,72 @@ p_init(char *filename)
 	p = emalloc(sizeof(Parser));
 	p->err = NULL;
 	p->l = l_init(filename);
+	p->ast = alloc_node(alloc_var('='));
+	p->state = P_INIT;
+	p->parens = 0;
 	return p;
 }
 
-void
+int
 parse(Parser *p)
 {
-	/* No compiler warnings for now */
-	le_cleanup(NULL);
-	lex(p->l);
-	(void)p;
+	Lexeme *le;
+	Node *root;
+	Symbol *sym;
+
+	root = p->ast;
+	le = lex(p->l);
+	switch(le->type) {
+	case LE_SYMBOL:
+		if(strlen(le->lexeme) == 1) {
+			sym = alloc_var(le->lexeme[0]);
+			ast_insert(p->ast, alloc_node(sym));
+			if(p->ast->right == NULL)
+				return parse(p);
+		} else {
+			Node *dummy_node;
+			sym = alloc_func(le->lexeme);
+			dummy_node = alloc_node(alloc_num(0));
+
+			p->ast->left = dummy_node;
+			p->ast = ast_insert(p->ast, alloc_node(sym));
+			return parse(p);
+		}
+		break;
+	case LE_NUMBER:
+		sym = alloc_num(atof(le->lexeme));
+		p->ast = ast_insert(p->ast, alloc_node(sym));
+		break;
+	case LE_OPERATOR:
+		sym = alloc_func(le->lexeme);
+		p->ast = ast_insert_above(p->ast->left, alloc_node(sym));
+		return parse(p);
+		break;
+	case LE_LPAREN:
+		p->parens++;
+		while(p->parens != 0)
+			return parse(p);
+		break;
+	case LE_RPAREN:
+		p->parens--;
+	case LE_EOF:
+		break;
+	case LE_ERROR:
+		fprintf(stderr, "%s", p->l->err);
+		p->ast = root;
+		return -1;
+	}
+	free(le);
+
+	p->ast = root;
+	return 0;
 }
 
 void
 p_cleanup(Parser *p)
 {
 	l_cleanup(p->l);
+	ast_cleanup(p->ast);
 	free(p->err);
 	free(p);
 }

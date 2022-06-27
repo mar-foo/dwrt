@@ -24,6 +24,10 @@
 #include "dat.h"
 #include "fns.h"
 
+static void	print_tabs(int);
+static void	print_tree_rec(Node*, int);
+static void	symbol_cleanup(Symbol*);
+
 Node*
 alloc_node(Symbol *sym)
 {
@@ -35,23 +39,24 @@ alloc_node(Symbol *sym)
 }
 
 Symbol*
-alloc_func(Function *func)
+alloc_func(char *func)
 {
 	Symbol *sym;
 
 	sym = emalloc(sizeof(Symbol));
-
+	sym->content = emalloc(sizeof *sym->content);
 	sym->content->func = func;
 	sym->type = S_FUNC;
 	return sym;
 }
 
 Symbol*
-alloc_number(double num)
+alloc_num(double num)
 {
 	Symbol *sym;
 
 	sym = emalloc(sizeof(Symbol));
+	sym->content = emalloc(sizeof *sym->content);
 	sym->content->num = num;
 	sym->type = S_NUM;
 	return sym;
@@ -63,44 +68,105 @@ alloc_var(char var)
 	Symbol *sym;
 
 	sym = emalloc(sizeof(Symbol));
+	sym->content = emalloc(sizeof *sym->content);
 	sym->content->var = var;
 	sym->type = S_VAR;
 	return sym;
 }
 
 void
+ast_cleanup(Node *ast)
+{
+	if(ast == NULL)
+		return;
+	symbol_cleanup(ast->sym);
+	ast_cleanup(ast->right);
+	ast_cleanup(ast->left);
+	free(ast);
+}
+
+Node*
+ast_insert(Node *ast, Node *new)
+{
+	new->parent = ast;
+	if(ast->left != NULL)
+		return ast->right = new;
+	return ast->left = new;
+}
+
+Node*
+ast_insert_above(Node *ast, Node *new)
+{
+	new->parent = ast->parent;
+	ast->parent = new;
+	new->left = ast;
+	if(new->parent->left == ast)
+		new->parent->left = new;
+	else
+		new->parent->right = new;
+	return new;
+}
+
+void
 print_symbol(Symbol *sym)
 {
 	if(sym == NULL) {
-		printf("_");
+		printf("NULL\n");
 		return;
 	}
 
 	switch(sym->type) {
 	case S_FUNC:
-		printf("Function: %s", sym->content->func->name);
+		printf("Function: %s\n", sym->content->func);
 		break;
 	case S_VAR:
-		printf("Variable: %c", sym->content->var);
+		printf("Variable: %c\n", sym->content->var);
 		break;
 	case S_NUM:
-		printf("Number: %f", sym->content->num);
+		printf("Number: %f\n", sym->content->num);
 		break;
 	default:
-		fprintf(stderr, "Unknown symbol type %d", sym->type);
+		fprintf(stderr, "Unknown symbol type %d\n", sym->type);
 	}
+}
+
+static void
+print_tabs(int tabs)
+{
+	int i;
+	for(i = 0; i < tabs; i++) printf("\t");
+}
+
+static void
+print_tree_rec(Node *root, int level)
+{
+	print_tabs(level);
+	if(root == NULL) {
+		printf("%s", "<empty>\n");
+		return;
+	}
+	print_symbol(root->sym);
+
+	print_tabs(level);
+	printf("left\n");
+	print_tree_rec(root->left, level + 1);
+
+	print_tabs(level);
+	printf("right\n");
+	print_tree_rec(root->right, level + 1);
 }
 
 void
 print_tree(Node *root)
 {
-	if(root == NULL) {
-		printf("%s", "<empty>");
-		return;
-	}
-	print_symbol(root->sym);
-	printf("left");
-	print_tree(root->left);
-	printf("right");
-	print_tree(root->right);
+	print_tree_rec(root, 0);
+}
+
+static void
+symbol_cleanup(Symbol *sym)
+{
+	if(sym->type == S_FUNC)
+		free(sym->content->func);
+	free(sym->content);
+	free(sym);
 }

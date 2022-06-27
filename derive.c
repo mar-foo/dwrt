@@ -26,6 +26,13 @@
 int
 main(void)
 {
-	printf("%s\n", "Hello World!");
+	Parser *p;
+
+	p = p_init("./test.txt");
+	parse(p);
+	if(p->parens != 0)
+		fprintf(stderr, "Unbalanced parenthesis");
+	print_tree(p->ast);
+	p_cleanup(p);
 	return 0;
 }
