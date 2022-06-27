@@ -1,0 +1,14 @@
+#+title: Derive
+#+author: Mario Forzanini
+
+Symbolic differentiation of mathematical expressions
+
+** Features
+
+- Parses mathematical expressions
+- Differentiates them symbolically
+
+** TODO
+
+- Latex output
+- =eqn(1)= output
