@@ -197,6 +197,7 @@ lex(Lexer *l)
 			case '\0':
 				switch(l->state) {
 				case LS_WS:
+					free(result->lexeme);
 					result->type = LE_EOF;
 					break;
 				default:
@@ -254,17 +255,22 @@ parse(Parser *p)
 		case LE_NUMBER:
 			sym = num_alloc(atof(le->lexeme));
 			node_stack = push(node_stack, ast_alloc(sym), NODE);
+			free(le->lexeme);
 			break;
 		case LE_OPERATOR:
-			sym = func_alloc(le->lexeme);
+			sym = operator_alloc(le->lexeme[0]);
+			free(le->lexeme);
 			head = peek(op_stack);
 			while(head != NULL &&
 			      ! is_lparen(head) &&
 			      precedence(head) >= precedence(sym)) {
+				if(peek(op_stack) == NULL) goto err;
 				tmp = ast_alloc(pop(&op_stack));
 
 				/* Needs error checking */
+				if(peek(node_stack) == NULL) goto err;
 				ast_insert(tmp, pop(&node_stack));
+				if(peek(node_stack) == NULL) goto err;
 				ast_insert(tmp, pop(&node_stack));
 				node_stack = push(node_stack, tmp, NODE);
 				head = peek(op_stack);
@@ -284,32 +290,39 @@ parse(Parser *p)
 					return -1;
 				}
 				/* Error handling */
+				if(peek(op_stack) == NULL) goto err;
 				tmp = ast_alloc(pop(&op_stack));
+				if(peek(node_stack) == NULL) goto err;
 				ast_insert(tmp, pop(&node_stack));
+				if(peek(node_stack) == NULL) goto err;
 				ast_insert(tmp, pop(&node_stack));
 				node_stack = push(node_stack, tmp, NODE);
 			}
 			symbol_cleanup(pop(&op_stack)); /* Left paren, discarded */
-			if(is_function(peek(op_stack))) {
+			if(peek(op_stack) != NULL && is_function(peek(op_stack))) {
 				tmp = ast_alloc(pop(&op_stack));
 				ast_insert(tmp, pop(&node_stack));
 				node_stack = push(node_stack, tmp, NODE);
 			}
+			free(le->lexeme);
 			break;
 		case LE_SYMBOL:
 			if(strlen(le->lexeme) == 1) {
 				sym = var_alloc(le->lexeme[0]);
 				node_stack = push(node_stack, ast_alloc(sym), NODE);
+				free(le->lexeme);
 			} else {
 				sym = func_alloc(le->lexeme);
 				op_stack = push(op_stack, sym, SYM);
 			}
 			break;
-		case LE_EOF:
-			break;
 		default:
 			stack_cleanup(op_stack);
 			stack_cleanup(node_stack);
+			p->err = ecalloc(strlen(p->l->filename) + strlen(le->lexeme) + 20 + 1, sizeof(char));
+			sprintf(p->err, "%s:%ld unknown symbol %s\n", p->l->filename, p->l->line, le->lexeme);
+			free(le->lexeme);
+			free(le);
 			return -1;
 		}
 	}
@@ -329,6 +342,12 @@ parse(Parser *p)
 	}
 	p->ast = pop(&node_stack);
 	return 0;
+err:
+	p->err = ecalloc(strlen(p->l->filename) + 27 + 1, sizeof(char));
+	sprintf(p->err, "%s:%ld malformed expression\n", p->l->filename, p->l->line);
+	stack_cleanup(op_stack);
+	stack_cleanup(node_stack);
+	return -1;
 }
 
 static void*
@@ -402,6 +421,8 @@ stack_alloc(void *data, enum stack_type type)
 static void
 stack_cleanup(Stack *s)
 {
+	if(s == NULL)
+		return;
 	while(s->next != NULL)
 		if(s->type == SYM)
 			symbol_cleanup(pop(&s));
