@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -Werror -pedantic -ansi
 TARG = derive
 OBJ = parse.o util.o ast.o
 
-ifeq(${DEBUG}, 1)
+ifeq (${DEBUG}, 1)
 	CFLAGS += -ggdb
 endif
 
