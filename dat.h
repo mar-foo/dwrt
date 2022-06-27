@@ -16,14 +16,6 @@ enum lexeme_types {
 	LE_LPAREN
 };
 
-enum parse_state {
-	P_EXPR,
-	P_FUNC,
-	P_INIT,
-	P_NUM,
-	P_VAR
-};
-
 enum symbol_type {
 	S_FUNC,
 	S_LPAREN,
@@ -59,10 +51,8 @@ struct Node {
 };
 
 struct Parser {
-	Lexer *l;
-	enum parse_state state;
-	int parens;
 	char *err;
+	Lexer *l;
 	Node *ast;
 };
 

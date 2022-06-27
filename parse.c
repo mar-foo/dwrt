@@ -258,11 +258,8 @@ p_init(char *filename)
 	Parser *p;
 
 	p = emalloc(sizeof(Parser));
-	p->err = NULL;
+	p->ast = p->err = NULL;
 	p->l = l_init(filename);
-	p->ast = alloc_node(alloc_var('='));
-	p->state = P_INIT;
-	p->parens = 0;
 	return p;
 }
 

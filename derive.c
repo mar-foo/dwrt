@@ -31,8 +31,6 @@ main(void)
 	p = p_init("./test.txt");
 	if(parse(p) < 0)
 		fprintf(stderr, p->err);
-	if(p->parens != 0)
-		fprintf(stderr, "Unbalanced parenthesis");
 	print_tree(p->ast);
 	p_cleanup(p);
 	return 0;
