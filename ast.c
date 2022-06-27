@@ -172,12 +172,7 @@ is_lparen(Symbol *sym)
 int
 is_operator(Symbol *sym)
 {
-	if(sym->type == S_FUNC)
-		return strcmp(sym->content->func, "+") &&
-			strcmp(sym->content->func, "-") &&
-			strcmp(sym->content->func, "*") &&
-			strcmp(sym->content->func, "/");
-	return 0;
+	return sym == NULL ? 0 : sym->type == S_OP;
 }
 
 static void
@@ -215,6 +210,9 @@ symbol_print(Symbol *sym)
 		break;
 	case S_NUM:
 		printf("Number: %f\n", sym->content->num);
+		break;
+	case S_OP:
+		printf("Operator: %c\n", sym->content->op);
 		break;
 	default:
 		fprintf(stderr, "Unknown symbol type %d\n", sym->type);
