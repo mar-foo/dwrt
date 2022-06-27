@@ -49,6 +49,7 @@ static int	precedence(Symbol*);
 static Stack*	push(Stack*, void*, enum stack_type);
 static Stack*	stack_alloc(void*, enum stack_type);
 static void	stack_cleanup(Stack*);
+static int	stack_len(Stack*);
 
 static char
 l_getc(Lexer *l)
@@ -341,6 +342,10 @@ parse(Parser *p)
 		node_stack = push(node_stack, tmp, NODE);
 	}
 	p->ast = pop(&node_stack);
+	if(stack_len(op_stack) > 0)
+		goto err;
+	else if(stack_len(node_stack) > 0)
+		goto err;
 	return 0;
 err:
 	p->err = ecalloc(strlen(p->l->filename) + 27 + 1, sizeof(char));
@@ -433,4 +438,12 @@ stack_cleanup(Stack *s)
 	else
 		ast_cleanup(pop(&s));
 	free(s);
+}
+
+static int
+stack_len(Stack *s)
+{
+	if(s == NULL)
+		return 0;
+	return 1 + stack_len(s->next);
 }
