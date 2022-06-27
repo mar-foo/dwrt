@@ -28,42 +28,52 @@
 
 #define LEXEME_MINSZ 10
 
+enum stack_type {
+	NODE,
+	SYM
+};
 
 typedef struct Stack Stack;
 struct Stack {
-	Symbol *sym;
+	void *data;
+	enum stack_type type;
 	Stack *next;
 };
 
-int precedence_table[] = { 0, 1, 2, 3 };
-
-static Stack*	alloc_stack(Symbol*);
-static void	cleanup_stack(Stack*);
+static Stack*	alloc_stack(void*, enum stack_type);
+static void	stack_cleanup(Stack*);
 static char	l_getc(Lexer*);
 static Lexer*	l_init(char*);
 static Lexeme*	lex(Lexer*);
-static Symbol*	peek(Stack*);
+static void*	peek(Stack*);
 static int	precedence(Symbol*);
-static Symbol*	pop(Stack**);
-static Stack*	push(Stack*, Symbol*);
+static void*	pop(Stack**);
+static Stack*	push(Stack*, void*, enum stack_type);
 
 static Stack*
-alloc_stack(Symbol *sym)
+alloc_stack(void *data, enum stack_type type)
 {
 	Stack *s;
 
 	s = emalloc(sizeof(Stack));
-	s->sym = sym;
+	s->data = data;
+	s->type = type;
 	s->next = NULL;
 	return s;
 }
 
 static void
-cleanup_stack(Stack *s)
+stack_cleanup(Stack *s)
 {
 	while(s->next != NULL)
-		symbol_cleanup(pop(&s));
-	symbol_cleanup(s->sym);
+		if(s->type == SYM)
+			symbol_cleanup(pop(&s));
+		else
+			ast_cleanup(pop(&s));
+	if(s->type == SYM)
+		symbol_cleanup(s->data);
+	else
+		ast_cleanup(pop(&s));
 	free(s);
 }
 
@@ -77,8 +87,9 @@ lex(Lexer *l)
 	result = emalloc(sizeof(Lexeme));
 	result->len = LEXEME_MINSZ;
 	result->lexeme = ecalloc(result->len, sizeof(char));
+	result->type = LE_EOF;
 	offset = 0;
-	while((c = l_getc(l)) != '\0') {
+	while((c = l_getc(l)) != EOF) {
 		if(isspace(c)) {
 			if(c == '\n')
 				l->line++;
@@ -176,8 +187,15 @@ lex(Lexer *l)
 					return result;
 				}
 				break;
-			case EOF:
-				result->type = LE_EOF;
+			case '\0':
+				switch(l->state) {
+				case LS_WS:
+					result->type = LE_EOF;
+					break;
+				default:
+					l->pos--;
+					l->state = LS_WS;
+				}
 				return result;
 			default:
 				l->state = LS_ERROR;
@@ -188,8 +206,6 @@ lex(Lexer *l)
 			}
 		}
 	}
-	/* Unreachable */
-	result->type = LE_EOF;
 	return result;
 }
 
@@ -257,26 +273,38 @@ int
 parse(Parser *p)
 {
 	Lexeme *le;
-	Stack *op_stack;
-	Symbol *sym, *first;
+	Node *tmp;
+	Stack *op_stack, *node_stack;
+	Symbol *sym, *head;
 
+	op_stack = node_stack = NULL;
 	for(le = lex(p->l); le->type != LE_EOF && le->type != LE_ERROR; free(le), le = lex(p->l)) {
 		switch(le->type){
 		case LE_NUMBER:
+			sym = alloc_num(atof(le->lexeme));
+			node_stack = push(node_stack, alloc_node(sym), NODE);
 			break;
 		case LE_OPERATOR:
 			sym = alloc_func(le->lexeme);
-			first = peek(op_stack);
-			while(! is_lparen(first) &&
-			      is_operator(first) &&
-			      precedence(first) > precedence(sym))
-				first = pop(&op_stack); /* Add it in the tree */
-			push(op_stack, sym);
+			head = peek(op_stack);
+			while(head != NULL &&
+			      ! is_lparen(head) &&
+			      precedence(head) >= precedence(sym)) {
+				tmp = alloc_node(pop(&op_stack));
+
+				/* Needs error checking */
+				ast_insert(tmp, pop(&node_stack));
+				ast_insert(tmp, pop(&node_stack));
+				node_stack = push(node_stack, tmp, NODE);
+				head = peek(op_stack);
+			}
+			op_stack = push(op_stack, sym, SYM);
 			break;
 		case LE_LPAREN:
 			sym = alloc_lparen();
 			free(le->lexeme);
-			push(op_stack, sym);
+			op_stack = push(op_stack, sym, SYM);
+			break;
 		case LE_RPAREN:
 			while(! is_lparen(peek(op_stack))) {
 				if(op_stack == NULL) {
@@ -284,41 +312,66 @@ parse(Parser *p)
 					sprintf(p->err, "%s:%ld unbalanced parenthesis\n", p->l->filename, p->l->line);
 					return -1;
 				}
-				first = pop(&op_stack); /* Add it in the tree */
+				/* Error handling */
+				tmp = alloc_node(pop(&op_stack));
+				ast_insert(tmp, pop(&node_stack));
+				ast_insert(tmp, pop(&node_stack));
+				node_stack = push(node_stack, tmp, NODE);
 			}
-			pop(&op_stack); /* Left paren, discarded */
-			if(is_function(peek(op_stack)))
-				first = pop(&op_stack); /* Add it in the tree */
+			symbol_cleanup(pop(&op_stack)); /* Left paren, discarded */
+			if(is_function(peek(op_stack))) {
+				tmp = alloc_node(pop(&op_stack));
+				ast_insert(tmp, pop(&node_stack));
+				node_stack = push(node_stack, tmp, NODE);
+			}
+			break;
+		case LE_SYMBOL:
+			if(strlen(le->lexeme) == 1) {
+				sym = alloc_var(le->lexeme[0]);
+				node_stack = push(node_stack, alloc_node(sym), NODE);
+			} else {
+				sym = alloc_func(le->lexeme);
+				op_stack = push(op_stack, sym, SYM);
+			}
+			break;
 		case LE_EOF:
 			break;
 		default:
-			cleanup_stack(op_stack);
+			stack_cleanup(op_stack);
+			stack_cleanup (node_stack);
 			return -1;
 		}
 	}
-	while(op_stack != NULL)
-		first = pop(&op_stack); /* Add it in the tree */
-
+	while(op_stack != NULL) {
+		tmp = alloc_node(pop(&op_stack));
+		ast_insert(tmp, pop(&node_stack));
+		ast_insert(tmp, pop(&node_stack));
+		node_stack = push(node_stack, tmp, NODE);
+	}
+	p->ast = pop(&node_stack);
 	return 0;
 }
 
-static Symbol*
+static void*
 peek(Stack *s)
 {
-	return s == NULL ? NULL : s->sym;
+	return s == NULL ? NULL : s->data;
 }
 
-static Symbol*
+static void*
 pop(Stack **s)
 {
-	Symbol *sym;
+	void *data;
 	Stack *old;
 
-	sym = (*s)->sym;
-	old = *s;
-	*s = (*s)->next;
-	free(old);
-	return sym;
+	data = NULL;
+	if(*s != NULL) {
+		data = (*s)->data;
+		old = *s;
+		*s = (*s)->next;
+		free(old);
+	}
+	return data;
 }
 
 static int
@@ -331,14 +384,14 @@ precedence(Symbol *s)
 		switch(s->content->op){
 		case '-':
 		case '+':
-			return precedence_table[O_ADD];
+			return 0;
 		case '*':
 		case '/':
-			return precedence_table[O_MUL];
+			return 1;
 		}
 		break;
 	case S_FUNC:
-		return precedence_table[O_FUNC];
+		return 2;
 	default:
 		return -1;
 	}
@@ -346,11 +399,11 @@ precedence(Symbol *s)
 }
 
 static Stack*
-push(Stack *s, Symbol *sym)
+push(Stack *s, void *data, enum stack_type type)
 {
 	Stack *new;
 
-	new = alloc_stack(sym);
+	new = alloc_stack(data, type);
 	new->next = s;
 	return new;
 }

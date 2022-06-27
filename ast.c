@@ -121,26 +121,15 @@ ast_cleanup(Node *ast)
 	free(ast);
 }
 
-Node*
+void
 ast_insert(Node *ast, Node *new)
 {
 	new->parent = ast;
-	if(ast->left != NULL)
-		return ast->right = new;
-	return ast->left = new;
-}
-
-Node*
-ast_insert_above(Node *ast, Node *new)
-{
-	new->parent = ast->parent;
-	ast->parent = new;
-	new->left = ast;
-	if(new->parent->left == ast)
-		new->parent->left = new;
-	else
-		new->parent->right = new;
-	return new;
+	if(ast->right != NULL) {
+		ast->left = new;
+		return;
+	}
+	ast->right = new;
 }
 
 int
@@ -224,6 +213,8 @@ print_tree(Node *root)
 void
 symbol_cleanup(Symbol *sym)
 {
+	if(sym == NULL)
+		return;
 	if(sym->type == S_FUNC)
 		free(sym->content->func);
 	free(sym->content);

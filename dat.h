@@ -33,12 +33,6 @@ enum symbol_type {
 	S_VAR
 };
 
-enum operator_type {
-	O_ADD = 0,
-	O_FUNC,
-	O_MUL
-};
-
 typedef struct Lexeme Lexeme;
 typedef struct Lexer Lexer;
 typedef struct Node Node;
