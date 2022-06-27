@@ -26,12 +26,6 @@
 
 #define BUFSZ 512
 
-void
-cleanup(void)
-{
-	return;
-}
-
 void*
 ecalloc(long nelem, size_t size)
 {
