@@ -40,7 +40,7 @@ struct Stack {
 	Stack *next;
 };
 
-static Stack*	alloc_stack(void*, enum stack_type);
+static Stack*	stack_alloc(void*, enum stack_type);
 static void	stack_cleanup(Stack*);
 static char	l_getc(Lexer*);
 static Lexer*	l_init(char*);
@@ -51,7 +51,7 @@ static void*	pop(Stack**);
 static Stack*	push(Stack*, void*, enum stack_type);
 
 static Stack*
-alloc_stack(void *data, enum stack_type type)
+stack_alloc(void *data, enum stack_type type)
 {
 	Stack *s;
 
@@ -258,7 +258,8 @@ p_init(char *filename)
 	Parser *p;
 
 	p = emalloc(sizeof(Parser));
-	p->ast = p->err = NULL;
+	p->ast = NULL;
+	p->err = NULL;
 	p->l = l_init(filename);
 	return p;
 }
@@ -278,16 +279,16 @@ parse(Parser *p)
 	for(le = lex(p->l); le->type != LE_EOF && le->type != LE_ERROR; free(le), le = lex(p->l)) {
 		switch(le->type){
 		case LE_NUMBER:
-			sym = alloc_num(atof(le->lexeme));
-			node_stack = push(node_stack, alloc_node(sym), NODE);
+			sym = num_alloc(atof(le->lexeme));
+			node_stack = push(node_stack, ast_alloc(sym), NODE);
 			break;
 		case LE_OPERATOR:
-			sym = alloc_func(le->lexeme);
+			sym = func_alloc(le->lexeme);
 			head = peek(op_stack);
 			while(head != NULL &&
 			      ! is_lparen(head) &&
 			      precedence(head) >= precedence(sym)) {
-				tmp = alloc_node(pop(&op_stack));
+				tmp = ast_alloc(pop(&op_stack));
 
 				/* Needs error checking */
 				ast_insert(tmp, pop(&node_stack));
@@ -298,7 +299,7 @@ parse(Parser *p)
 			op_stack = push(op_stack, sym, SYM);
 			break;
 		case LE_LPAREN:
-			sym = alloc_lparen();
+			sym = lparen_alloc();
 			free(le->lexeme);
 			op_stack = push(op_stack, sym, SYM);
 			break;
@@ -310,24 +311,24 @@ parse(Parser *p)
 					return -1;
 				}
 				/* Error handling */
-				tmp = alloc_node(pop(&op_stack));
+				tmp = ast_alloc(pop(&op_stack));
 				ast_insert(tmp, pop(&node_stack));
 				ast_insert(tmp, pop(&node_stack));
 				node_stack = push(node_stack, tmp, NODE);
 			}
 			symbol_cleanup(pop(&op_stack)); /* Left paren, discarded */
 			if(is_function(peek(op_stack))) {
-				tmp = alloc_node(pop(&op_stack));
+				tmp = ast_alloc(pop(&op_stack));
 				ast_insert(tmp, pop(&node_stack));
 				node_stack = push(node_stack, tmp, NODE);
 			}
 			break;
 		case LE_SYMBOL:
 			if(strlen(le->lexeme) == 1) {
-				sym = alloc_var(le->lexeme[0]);
-				node_stack = push(node_stack, alloc_node(sym), NODE);
+				sym = var_alloc(le->lexeme[0]);
+				node_stack = push(node_stack, ast_alloc(sym), NODE);
 			} else {
-				sym = alloc_func(le->lexeme);
+				sym = func_alloc(le->lexeme);
 				op_stack = push(op_stack, sym, SYM);
 			}
 			break;
@@ -348,7 +349,7 @@ parse(Parser *p)
 			stack_cleanup(node_stack);
 			return -1;
 		}
-		tmp = alloc_node(pop(&op_stack));
+		tmp = ast_alloc(pop(&op_stack));
 		ast_insert(tmp, pop(&node_stack));
 		ast_insert(tmp, pop(&node_stack));
 		node_stack = push(node_stack, tmp, NODE);
@@ -408,7 +409,7 @@ push(Stack *s, void *data, enum stack_type type)
 {
 	Stack *new;
 
-	new = alloc_stack(data, type);
+	new = stack_alloc(data, type);
 	new->next = s;
 	return new;
 }

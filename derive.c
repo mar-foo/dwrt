@@ -31,7 +31,7 @@ main(void)
 	p = p_init("./test.txt");
 	if(parse(p) < 0)
 		fprintf(stderr, p->err);
-	print_tree(p->ast);
+	ast_print(p->ast);
 	p_cleanup(p);
 	return 0;
 }

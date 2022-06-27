@@ -26,10 +26,10 @@
 #include "fns.h"
 
 static void	print_tabs(int);
-static void	print_tree_rec(Node*, int);
+static void	ast_print_rec(Node*, int);
 
 Node*
-alloc_node(Symbol *sym)
+ast_alloc(Symbol *sym)
 {
 	Node *node;
 
@@ -39,7 +39,7 @@ alloc_node(Symbol *sym)
 }
 
 Symbol*
-alloc_func(char *func)
+func_alloc(char *func)
 {
 	Symbol *sym;
 
@@ -51,7 +51,7 @@ alloc_func(char *func)
 }
 
 Symbol*
-alloc_lparen()
+lparen_alloc()
 {
 	Symbol *sym;
 
@@ -63,7 +63,7 @@ alloc_lparen()
 }
 
 Symbol*
-alloc_num(double num)
+num_alloc(double num)
 {
 	Symbol *sym;
 
@@ -75,7 +75,7 @@ alloc_num(double num)
 }
 
 Symbol*
-alloc_operator(char op)
+operator_alloc(char op)
 {
 	Symbol *sym;
 
@@ -87,7 +87,7 @@ alloc_operator(char op)
 }
 
 Symbol*
-alloc_rparen()
+rparen_alloc()
 {
 	Symbol *sym;
 
@@ -99,7 +99,7 @@ alloc_rparen()
 }
 
 Symbol*
-alloc_var(char var)
+var_alloc(char var)
 {
 	Symbol *sym;
 
@@ -156,7 +156,7 @@ is_operator(Symbol *sym)
 }
 
 void
-print_symbol(Symbol *sym)
+symbol_print(Symbol *sym)
 {
 	if(sym == NULL) {
 		printf("NULL\n");
@@ -186,28 +186,28 @@ print_tabs(int tabs)
 }
 
 static void
-print_tree_rec(Node *root, int level)
+ast_print_rec(Node *root, int level)
 {
 	print_tabs(level);
 	if(root == NULL) {
 		printf("%s", "<empty>\n");
 		return;
 	}
-	print_symbol(root->sym);
+	symbol_print(root->sym);
 
 	print_tabs(level);
 	printf("left\n");
-	print_tree_rec(root->left, level + 1);
+	ast_print_rec(root->left, level + 1);
 
 	print_tabs(level);
 	printf("right\n");
-	print_tree_rec(root->right, level + 1);
+	ast_print_rec(root->right, level + 1);
 }
 
 void
-print_tree(Node *root)
+ast_print(Node *root)
 {
-	print_tree_rec(root, 0);
+	ast_print_rec(root, 0);
 }
 
 void
