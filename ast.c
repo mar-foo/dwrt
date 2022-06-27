@@ -20,13 +20,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "dat.h"
 #include "fns.h"
 
 static void	print_tabs(int);
 static void	print_tree_rec(Node*, int);
-static void	symbol_cleanup(Symbol*);
 
 Node*
 alloc_node(Symbol *sym)
@@ -51,6 +51,18 @@ alloc_func(char *func)
 }
 
 Symbol*
+alloc_lparen()
+{
+	Symbol *sym;
+
+	sym = emalloc(sizeof(Symbol));
+	sym->content = emalloc(sizeof *sym->content);
+	sym->content->func = "(";
+	sym->type = S_LPAREN;
+	return sym;
+}
+
+Symbol*
 alloc_num(double num)
 {
 	Symbol *sym;
@@ -59,6 +71,30 @@ alloc_num(double num)
 	sym->content = emalloc(sizeof *sym->content);
 	sym->content->num = num;
 	sym->type = S_NUM;
+	return sym;
+}
+
+Symbol*
+alloc_operator(char op)
+{
+	Symbol *sym;
+
+	sym = emalloc(sizeof(Symbol));
+	sym->content = emalloc(sizeof *sym->content);
+	sym->content->op = op;
+	sym->type = S_OP;
+	return sym;
+}
+
+Symbol*
+alloc_rparen()
+{
+	Symbol *sym;
+
+	sym = emalloc(sizeof(Symbol));
+	sym->content = emalloc(sizeof *sym->content);
+	sym->content->func = ")";
+	sym->type = S_RPAREN;
 	return sym;
 }
 
@@ -105,6 +141,29 @@ ast_insert_above(Node *ast, Node *new)
 	else
 		new->parent->right = new;
 	return new;
+}
+
+int
+is_lparen(Symbol *sym)
+{
+	return sym == NULL ? 0 : sym->type == S_LPAREN;
+}
+
+int
+is_function(Symbol *sym)
+{
+	return sym == NULL ? 0 : sym->type == S_FUNC;
+}
+
+int
+is_operator(Symbol *sym)
+{
+	if(sym->type == S_FUNC)
+		return strcmp(sym->content->func, "+") &&
+			strcmp(sym->content->func, "-") &&
+			strcmp(sym->content->func, "*") &&
+			strcmp(sym->content->func, "/");
+	return 0;
 }
 
 void
@@ -162,7 +221,7 @@ print_tree(Node *root)
 	print_tree_rec(root, 0);
 }
 
-static void
+void
 symbol_cleanup(Symbol *sym)
 {
 	if(sym->type == S_FUNC)

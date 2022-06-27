@@ -28,9 +28,44 @@
 
 #define LEXEME_MINSZ 10
 
+
+typedef struct Stack Stack;
+struct Stack {
+	Symbol *sym;
+	Stack *next;
+};
+
+int precedence_table[] = { 0, 1, 2, 3 };
+
+static Stack*	alloc_stack(Symbol*);
+static void	cleanup_stack(Stack*);
 static char	l_getc(Lexer*);
 static Lexer*	l_init(char*);
 static Lexeme*	lex(Lexer*);
+static Symbol*	peek(Stack*);
+static int	precedence(Symbol*);
+static Symbol*	pop(Stack**);
+static Stack*	push(Stack*, Symbol*);
+
+static Stack*
+alloc_stack(Symbol *sym)
+{
+	Stack *s;
+
+	s = emalloc(sizeof(Stack));
+	s->sym = sym;
+	s->next = NULL;
+	return s;
+}
+
+static void
+cleanup_stack(Stack *s)
+{
+	while(s->next != NULL)
+		symbol_cleanup(pop(&s));
+	symbol_cleanup(s->sym);
+	free(s);
+}
 
 Lexeme*
 lex(Lexer *l)
@@ -192,6 +227,15 @@ l_getc(Lexer *l)
 	return *(l->pos++);
 }
 
+void
+p_cleanup(Parser *p)
+{
+	l_cleanup(p->l);
+	ast_cleanup(p->ast);
+	free(p->err);
+	free(p);
+}
+
 Parser*
 p_init(char *filename)
 {
@@ -206,66 +250,107 @@ p_init(char *filename)
 	return p;
 }
 
+/*
+ * Shunting yard algorithm
+ */
 int
 parse(Parser *p)
 {
 	Lexeme *le;
-	Node *root;
-	Symbol *sym;
+	Stack *op_stack;
+	Symbol *sym, *first;
 
-	root = p->ast;
-	le = lex(p->l);
-	switch(le->type) {
-	case LE_SYMBOL:
-		if(strlen(le->lexeme) == 1) {
-			sym = alloc_var(le->lexeme[0]);
-			ast_insert(p->ast, alloc_node(sym));
-			if(p->ast->right == NULL)
-				return parse(p);
-		} else {
-			Node *dummy_node;
+	for(le = lex(p->l); le->type != LE_EOF && le->type != LE_ERROR; free(le), le = lex(p->l)) {
+		switch(le->type){
+		case LE_NUMBER:
+			break;
+		case LE_OPERATOR:
 			sym = alloc_func(le->lexeme);
-			dummy_node = alloc_node(alloc_num(0));
-
-			p->ast->left = dummy_node;
-			p->ast = ast_insert(p->ast, alloc_node(sym));
-			return parse(p);
+			first = peek(op_stack);
+			while(! is_lparen(first) &&
+			      is_operator(first) &&
+			      precedence(first) > precedence(sym))
+				first = pop(&op_stack); /* Add it in the tree */
+			push(op_stack, sym);
+			break;
+		case LE_LPAREN:
+			sym = alloc_lparen();
+			free(le->lexeme);
+			push(op_stack, sym);
+		case LE_RPAREN:
+			while(! is_lparen(peek(op_stack))) {
+				if(op_stack == NULL) {
+					p->err = ecalloc(strlen(p->l->filename) + 29 + 1, sizeof(char));
+					sprintf(p->err, "%s:%ld unbalanced parenthesis\n", p->l->filename, p->l->line);
+					return -1;
+				}
+				first = pop(&op_stack); /* Add it in the tree */
+			}
+			pop(&op_stack); /* Left paren, discarded */
+			if(is_function(peek(op_stack)))
+				first = pop(&op_stack); /* Add it in the tree */
+		case LE_EOF:
+			break;
+		default:
+			cleanup_stack(op_stack);
+			return -1;
 		}
-		break;
-	case LE_NUMBER:
-		sym = alloc_num(atof(le->lexeme));
-		p->ast = ast_insert(p->ast, alloc_node(sym));
-		break;
-	case LE_OPERATOR:
-		sym = alloc_func(le->lexeme);
-		p->ast = ast_insert_above(p->ast->left, alloc_node(sym));
-		return parse(p);
-		break;
-	case LE_LPAREN:
-		p->parens++;
-		while(p->parens != 0)
-			return parse(p);
-		break;
-	case LE_RPAREN:
-		p->parens--;
-	case LE_EOF:
-		break;
-	case LE_ERROR:
-		fprintf(stderr, "%s", p->l->err);
-		p->ast = root;
-		return -1;
 	}
-	free(le);
+	while(op_stack != NULL)
+		first = pop(&op_stack); /* Add it in the tree */
 
-	p->ast = root;
 	return 0;
 }
 
-void
-p_cleanup(Parser *p)
+static Symbol*
+peek(Stack *s)
 {
-	l_cleanup(p->l);
-	ast_cleanup(p->ast);
-	free(p->err);
-	free(p);
+	return s == NULL ? NULL : s->sym;
+}
+
+static Symbol*
+pop(Stack **s)
+{
+	Symbol *sym;
+	Stack *old;
+
+	sym = (*s)->sym;
+	old = *s;
+	*s = (*s)->next;
+	free(old);
+	return sym;
+}
+
+static int
+precedence(Symbol *s)
+{
+	if(s == NULL)
+		return -1;
+	switch(s->type) {
+	case S_OP:
+		switch(s->content->op){
+		case '-':
+		case '+':
+			return precedence_table[O_ADD];
+		case '*':
+		case '/':
+			return precedence_table[O_MUL];
+		}
+		break;
+	case S_FUNC:
+		return precedence_table[O_FUNC];
+	default:
+		return -1;
+	}
+	return -1;
+}
+
+static Stack*
+push(Stack *s, Symbol *sym)
+{
+	Stack *new;
+
+	new = alloc_stack(sym);
+	new->next = s;
+	return new;
 }
