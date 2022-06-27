@@ -23,15 +23,110 @@
 #include "dat.h"
 #include "fns.h"
 
+static Node*	ast_derive(Node*, char);
+static int	is_same_var(Symbol*, char);
+
+/*
+ * TODO: symplify numerical expressions
+ * TODO: handle separate cases in different functions
+ */
+static Node*
+ast_derive(Node *ast, char var)
+{
+	Node *diff;
+	Node *fg, *gf;
+	Node *num, *den;
+
+	diff = NULL;
+	switch(ast->sym->type) {
+	case S_VAR:
+		if(is_same_var(ast->sym, var))
+			return ast_alloc(num_alloc(1));
+		else
+			return ast_alloc(var_alloc(ast->sym->content->var));
+		break;
+	case S_NUM:
+		return ast_alloc(num_alloc(0));
+		break;
+	case S_OP:
+		if(ast->sym->content->op == '+' || ast->sym->content->op == '-') {
+			/* d/dx x + y = (d/dx x) + (d/dx y) */
+			diff = ast_alloc(operator_alloc(ast->sym->content->op));
+			ast_insert(diff, ast_derive(ast->left, var));
+			ast_insert(diff, ast_derive(ast->right, var));
+			return diff;
+		} else if(ast->sym->content->op == '*') {
+			/* d/dx x * y = (d/dx x) * y + (d/dx y) * x */
+			diff = ast_alloc(operator_alloc('+'));
+
+			fg = ast_alloc(operator_alloc('*'));
+			ast_copy(&fg->left, ast->right);
+			ast_insert(fg, ast_derive(ast->left, var));
+
+			gf = ast_alloc(operator_alloc('*'));
+			ast_copy(&gf->left, ast->left);
+			ast_insert(gf, ast_derive(ast->right, var));
+
+			ast_insert(diff, fg);
+			ast_insert(diff, gf);
+			return diff;
+		} else if(ast->sym->content->op == '/') {
+			diff = ast_alloc(operator_alloc('/'));
+
+			num = ast_alloc(operator_alloc('-'));
+
+			fg = ast_alloc(operator_alloc('*'));
+			ast_copy(&fg->left, ast->right);
+			ast_insert(fg, ast_derive(ast->left, var));
+
+			gf = ast_alloc(operator_alloc('*'));
+			ast_copy(&gf->left, ast->left);
+			ast_insert(gf, ast_derive(ast->right, var));
+
+			ast_insert(num, fg);
+			ast_insert(num, gf);
+
+			/* TODO: Implement pow() */
+			den = ast_alloc(operator_alloc('*'));
+			ast_copy(&den->left, ast->right);
+			ast_copy(&den->right, ast->right);
+
+			ast_insert(diff, num);
+			ast_insert(diff, den);
+			return diff;
+		}
+		break;
+	default:
+		break;
+	}
+
+	ast_insert(diff, ast_derive(ast->right, var));
+	ast_insert(diff, ast_derive(ast->left, var));
+	return diff;
+}
+
+static int
+is_same_var(Symbol *sym, char var)
+{
+	if(sym->type != S_VAR)
+		return 0;
+	return sym->content->var == var;
+}
+
 int
 main(void)
 {
 	Parser *p;
+	Node *diff;
 
 	p = p_init("./test.txt");
 	if(parse(p) < 0)
 		fprintf(stderr, p->err);
-	ast_print(p->ast);
+	diff = NULL;
+
+	diff = ast_derive(p->ast, 'x');
+	ast_print(diff);
+	ast_cleanup(diff);
 	p_cleanup(p);
 	return 0;
 }

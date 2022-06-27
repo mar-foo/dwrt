@@ -25,8 +25,9 @@
 #include "dat.h"
 #include "fns.h"
 
-static void	print_tabs(int);
 static void	ast_print_rec(Node*, int);
+static void	print_tabs(int);
+static void	symbol_copy(Symbol**, Symbol*);
 
 Node*
 ast_alloc(Symbol *sym)
@@ -47,6 +48,21 @@ ast_cleanup(Node *ast)
 	ast_cleanup(ast->right);
 	ast_cleanup(ast->left);
 	free(ast);
+}
+
+void
+ast_copy(Node **dest, Node *src)
+{
+	Symbol *sym;
+
+	sym = NULL;
+	if(src == NULL)
+		return;
+	symbol_copy(&sym, src->sym);
+	*dest = ast_alloc(sym);
+
+	ast_copy(&(*dest)->left, src->left);
+	ast_copy(&(*dest)->right, src->right);
 }
 
 void
@@ -191,6 +207,31 @@ symbol_cleanup(Symbol *sym)
 		free(sym->content->func);
 	free(sym->content);
 	free(sym);
+}
+
+static void
+symbol_copy(Symbol **dest, Symbol *src)
+{
+	*dest = emalloc(sizeof(Symbol));
+	(*dest)->content = emalloc(sizeof (*dest)->content);
+	(*dest)->type = src->type;
+	switch(src->type) {
+	case S_FUNC:
+		(*dest)->content->func = ecalloc(strlen(src->content->func) + 1, sizeof(char));
+		strcpy((*dest)->content->func, src->content->func);
+		break;
+	case S_OP:
+		(*dest)->content->op = src->content->op;
+		break;
+	case S_VAR:
+		(*dest)->content->var = src->content->var;
+		break;
+	case S_NUM:
+		(*dest)->content->num = src->content->num;
+		break;
+	default:
+		break;
+	}
 }
 
 void
