@@ -38,6 +38,53 @@ ast_alloc(Symbol *sym)
 	return node;
 }
 
+void
+ast_cleanup(Node *ast)
+{
+	if(ast == NULL)
+		return;
+	symbol_cleanup(ast->sym);
+	ast_cleanup(ast->right);
+	ast_cleanup(ast->left);
+	free(ast);
+}
+
+void
+ast_insert(Node *ast, Node *new)
+{
+	new->parent = ast;
+	if(ast->right != NULL) {
+		ast->left = new;
+		return;
+	}
+	ast->right = new;
+}
+
+void
+ast_print(Node *root)
+{
+	ast_print_rec(root, 0);
+}
+
+static void
+ast_print_rec(Node *root, int level)
+{
+	print_tabs(level);
+	if(root == NULL) {
+		printf("%s", "<empty>\n");
+		return;
+	}
+	symbol_print(root->sym);
+
+	print_tabs(level);
+	printf("left\n");
+	ast_print_rec(root->left, level + 1);
+
+	print_tabs(level);
+	printf("right\n");
+	ast_print_rec(root->right, level + 1);
+}
+
 Symbol*
 func_alloc(char *func)
 {
@@ -110,38 +157,16 @@ var_alloc(char var)
 	return sym;
 }
 
-void
-ast_cleanup(Node *ast)
+int
+is_function(Symbol *sym)
 {
-	if(ast == NULL)
-		return;
-	symbol_cleanup(ast->sym);
-	ast_cleanup(ast->right);
-	ast_cleanup(ast->left);
-	free(ast);
-}
-
-void
-ast_insert(Node *ast, Node *new)
-{
-	new->parent = ast;
-	if(ast->right != NULL) {
-		ast->left = new;
-		return;
-	}
-	ast->right = new;
+	return sym == NULL ? 0 : sym->type == S_FUNC;
 }
 
 int
 is_lparen(Symbol *sym)
 {
 	return sym == NULL ? 0 : sym->type == S_LPAREN;
-}
-
-int
-is_function(Symbol *sym)
-{
-	return sym == NULL ? 0 : sym->type == S_FUNC;
 }
 
 int
@@ -153,6 +178,24 @@ is_operator(Symbol *sym)
 			strcmp(sym->content->func, "*") &&
 			strcmp(sym->content->func, "/");
 	return 0;
+}
+
+static void
+print_tabs(int tabs)
+{
+	int i;
+	for(i = 0; i < tabs; i++) printf("\t");
+}
+
+void
+symbol_cleanup(Symbol *sym)
+{
+	if(sym == NULL)
+		return;
+	if(sym->type == S_FUNC)
+		free(sym->content->func);
+	free(sym->content);
+	free(sym);
 }
 
 void
@@ -176,47 +219,4 @@ symbol_print(Symbol *sym)
 	default:
 		fprintf(stderr, "Unknown symbol type %d\n", sym->type);
 	}
-}
-
-static void
-print_tabs(int tabs)
-{
-	int i;
-	for(i = 0; i < tabs; i++) printf("\t");
-}
-
-static void
-ast_print_rec(Node *root, int level)
-{
-	print_tabs(level);
-	if(root == NULL) {
-		printf("%s", "<empty>\n");
-		return;
-	}
-	symbol_print(root->sym);
-
-	print_tabs(level);
-	printf("left\n");
-	ast_print_rec(root->left, level + 1);
-
-	print_tabs(level);
-	printf("right\n");
-	ast_print_rec(root->right, level + 1);
-}
-
-void
-ast_print(Node *root)
-{
-	ast_print_rec(root, 0);
-}
-
-void
-symbol_cleanup(Symbol *sym)
-{
-	if(sym == NULL)
-		return;
-	if(sym->type == S_FUNC)
-		free(sym->content->func);
-	free(sym->content);
-	free(sym);
 }

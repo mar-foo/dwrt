@@ -18,16 +18,16 @@
  *
  */
 
+Node*	ast_alloc(Symbol*);
+void	ast_cleanup(Node*);
+void 	ast_insert(Node*, Node*);
+void	ast_print(Node*);
 Symbol*	func_alloc(char*);
 Symbol*	lparen_alloc();
 Symbol*	rparen_alloc();
 Symbol*	num_alloc(double);
 Symbol*	operator_alloc(char);
 Symbol*	var_alloc(char);
-Node*	ast_alloc(Symbol*);
-void	ast_cleanup(Node*);
-void 	ast_insert(Node*, Node*);
-void	ast_print(Node*);
 void*	ecalloc(long, size_t);
 void*	emalloc(size_t);
 int	is_function(Symbol*);

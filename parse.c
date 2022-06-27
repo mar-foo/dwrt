@@ -40,41 +40,48 @@ struct Stack {
 	Stack *next;
 };
 
-static Stack*	stack_alloc(void*, enum stack_type);
-static void	stack_cleanup(Stack*);
 static char	l_getc(Lexer*);
 static Lexer*	l_init(char*);
 static Lexeme*	lex(Lexer*);
 static void*	peek(Stack*);
-static int	precedence(Symbol*);
 static void*	pop(Stack**);
+static int	precedence(Symbol*);
 static Stack*	push(Stack*, void*, enum stack_type);
+static Stack*	stack_alloc(void*, enum stack_type);
+static void	stack_cleanup(Stack*);
 
-static Stack*
-stack_alloc(void *data, enum stack_type type)
+static char
+l_getc(Lexer *l)
 {
-	Stack *s;
-
-	s = emalloc(sizeof(Stack));
-	s->data = data;
-	s->type = type;
-	s->next = NULL;
-	return s;
+	return *(l->pos++);
 }
 
-static void
-stack_cleanup(Stack *s)
+void
+l_cleanup(Lexer *lex)
 {
-	while(s->next != NULL)
-		if(s->type == SYM)
-			symbol_cleanup(pop(&s));
-		else
-			ast_cleanup(pop(&s));
-	if(s->type == SYM)
-		symbol_cleanup(s->data);
-	else
-		ast_cleanup(pop(&s));
-	free(s);
+	free(lex->data);
+	free(lex->err);
+	free(lex);
+}
+
+static Lexer*
+l_init(char *filename)
+{
+	FILE *f;
+	Lexer *l;
+
+	l = emalloc(sizeof(Lexer));
+	l->filename = filename,
+	l->err = NULL,
+	l->line = 1,
+	l->state = LS_WS;
+
+	if((f = fopen(filename, "r")) == NULL)
+		return NULL;
+	l->pos = l->data = readall(f);
+
+	fclose(f);
+	return l;
 }
 
 Lexeme*
@@ -207,40 +214,6 @@ lex(Lexer *l)
 		}
 	}
 	return result;
-}
-
-static Lexer*
-l_init(char *filename)
-{
-	FILE *f;
-	Lexer *l;
-
-	l = emalloc(sizeof(Lexer));
-	l->filename = filename,
-	l->err = NULL,
-	l->line = 1,
-	l->state = LS_WS;
-
-	if((f = fopen(filename, "r")) == NULL)
-		return NULL;
-	l->pos = l->data = readall(f);
-
-	fclose(f);
-	return l;
-}
-
-void
-l_cleanup(Lexer *lex)
-{
-	free(lex->data);
-	free(lex->err);
-	free(lex);
-}
-
-static char
-l_getc(Lexer *l)
-{
-	return *(l->pos++);
 }
 
 void
@@ -412,4 +385,31 @@ push(Stack *s, void *data, enum stack_type type)
 	new = stack_alloc(data, type);
 	new->next = s;
 	return new;
+}
+
+static Stack*
+stack_alloc(void *data, enum stack_type type)
+{
+	Stack *s;
+
+	s = emalloc(sizeof(Stack));
+	s->data = data;
+	s->type = type;
+	s->next = NULL;
+	return s;
+}
+
+static void
+stack_cleanup(Stack *s)
+{
+	while(s->next != NULL)
+		if(s->type == SYM)
+			symbol_cleanup(pop(&s));
+		else
+			ast_cleanup(pop(&s));
+	if(s->type == SYM)
+		symbol_cleanup(s->data);
+	else
+		ast_cleanup(pop(&s));
+	free(s);
 }
