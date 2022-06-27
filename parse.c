@@ -342,7 +342,15 @@ parse(Parser *p)
 			return -1;
 		}
 	}
+	free(le);
 	while(op_stack != NULL) {
+		if(is_lparen(peek(op_stack))) {
+			p->err = ecalloc(strlen(p->l->filename) + 29 + 1, sizeof(char));
+			sprintf(p->err, "%s:%ld unbalanced parenthesis\n", p->l->filename, p->l->line);
+			stack_cleanup(op_stack);
+			stack_cleanup(node_stack);
+			return -1;
+		}
 		tmp = alloc_node(pop(&op_stack));
 		ast_insert(tmp, pop(&node_stack));
 		ast_insert(tmp, pop(&node_stack));
