@@ -68,6 +68,8 @@ ast_copy(Node *src)
 void
 ast_insert(Node *ast, Node *new)
 {
+	if(new == NULL || ast == NULL)
+		return;
 	new->parent = ast;
 	if(ast->right != NULL) {
 		ast->left = new;
