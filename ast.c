@@ -18,6 +18,7 @@
  *
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,7 +87,7 @@ ast_print_rec(Node *root, int level)
 {
 	print_tabs(level);
 	if(root == NULL) {
-		printf("%s", "<empty>\n");
+		printf("\n");
 		return;
 	}
 	symbol_print(root->sym);
@@ -188,6 +189,18 @@ int
 is_operator(Symbol *sym)
 {
 	return sym == NULL ? 0 : sym->type == S_OP;
+}
+
+int
+is_num(Symbol *sym)
+{
+	return sym == NULL ? 0 : sym->type == S_NUM;
+}
+
+int
+num_equal(Symbol *sym, double num)
+{
+	return is_num(sym) ? fabs(sym->content->num - num) < 1e-7 : 0;
 }
 
 static void

@@ -34,6 +34,8 @@ void*	emalloc(size_t);
 int	is_function(Symbol*);
 int	is_lparen(Symbol*);
 int	is_operator(Symbol*);
+int	is_num(Symbol*);
+int	num_equal(Symbol*, double);
 void	p_cleanup(Parser*);
 Parser*	p_init(char*);
 int	parse(Parser*);

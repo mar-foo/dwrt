@@ -1,5 +1,5 @@
 CFLAGS = -Wall -Wextra -Werror -pedantic -ansi
-# LDFLAGS = -lm
+LDFLAGS = -lm
 TARG = derive
 OBJ = parse.o util.o ast.o
 
