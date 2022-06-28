@@ -216,22 +216,19 @@ symbol_copy(Symbol *src)
 	if(src == NULL)
 		return NULL;
 
-	dest = emalloc(sizeof(Symbol));
-	dest->content = emalloc(sizeof dest->content);
-	dest->type = src->type;
+	dest = NULL;
 	switch(src->type) {
 	case S_FUNC:
-		dest->content->func = ecalloc(strlen(src->content->func) + 1, sizeof(char));
-		strcpy(dest->content->func, src->content->func);
+		dest = func_alloc(src->content->func);
 		break;
 	case S_OP:
-		dest->content->op = src->content->op;
+		dest = operator_alloc(src->content->op);
 		break;
 	case S_VAR:
-		dest->content->var = src->content->var;
+		dest = var_alloc(src->content->var);
 		break;
 	case S_NUM:
-		dest->content->num = src->content->num;
+		dest = num_alloc(src->content->num);
 		break;
 	default:
 		break;
