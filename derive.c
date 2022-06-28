@@ -24,7 +24,57 @@
 #include "fns.h"
 
 static Node*	ast_derive(Node*, char);
+static Node*	sum(Node*, Node*);
+static Node*	sub(Node*, Node*);
+static Node*	mul(Node*, Node*);
+static Node*	frac(Node*, Node*);
 static int	is_same_var(Symbol*, char);
+
+
+static Node*
+frac(Node *x, Node *y)
+{
+	Node *frac;
+
+	frac = ast_alloc(operator_alloc('/'));
+	ast_insert(frac, x);
+	ast_insert(frac, y);
+	return frac;
+}
+
+static Node*
+mul(Node *x, Node *y)
+{
+	Node *mul;
+
+	mul = ast_alloc(operator_alloc('*'));
+	ast_insert(mul, x);
+	ast_insert(mul, y);
+	return mul;
+}
+
+static Node*
+sum(Node *x, Node *y)
+{
+	Node *sum;
+
+	sum = ast_alloc(operator_alloc('+'));
+	ast_insert(sum, x);
+	ast_insert(sum, y);
+	return sum;
+}
+
+static Node*
+sub(Node *x, Node *y)
+{
+	Node *sub;
+
+	sub = ast_alloc(operator_alloc('-'));
+	ast_insert(sub, x);
+	ast_insert(sub, y);
+	return sub;
+}
+
 
 /*
  * TODO: symplify numerical expressions
@@ -34,8 +84,6 @@ static Node*
 ast_derive(Node *ast, char var)
 {
 	Node *diff;
-	Node *fg, *gf;
-	Node *num, *den;
 
 	diff = NULL;
 	switch(ast->sym->type) {
@@ -49,50 +97,24 @@ ast_derive(Node *ast, char var)
 		return ast_alloc(num_alloc(0));
 		break;
 	case S_OP:
-		if(ast->sym->content->op == '+' || ast->sym->content->op == '-') {
+		if(ast->sym->content->op == '+') {
 			/* d/dx x + y = (d/dx x) + (d/dx y) */
-			diff = ast_alloc(operator_alloc(ast->sym->content->op));
-			ast_insert(diff, ast_derive(ast->left, var));
-			ast_insert(diff, ast_derive(ast->right, var));
+			diff = sum(ast_derive(ast->left, var), ast_derive(ast->right, var));
+			return diff;
+		} else if(ast->sym->content->op == '-') {
+			diff = sub(ast_derive(ast->left, var), ast_derive(ast->right, var));
 			return diff;
 		} else if(ast->sym->content->op == '*') {
 			/* d/dx x * y = (d/dx x) * y + (d/dx y) * x */
-			diff = ast_alloc(operator_alloc('+'));
-
-			fg = ast_alloc(operator_alloc('*'));
-			ast_copy(&fg->left, ast->right);
-			ast_insert(fg, ast_derive(ast->left, var));
-
-			gf = ast_alloc(operator_alloc('*'));
-			ast_copy(&gf->left, ast->left);
-			ast_insert(gf, ast_derive(ast->right, var));
-
-			ast_insert(diff, fg);
-			ast_insert(diff, gf);
+			diff = sum(mul(ast_copy(ast->right), ast_derive(ast->left, var)),
+				   mul(ast_copy(ast->left), ast_derive(ast->right, var)));
 			return diff;
 		} else if(ast->sym->content->op == '/') {
-			diff = ast_alloc(operator_alloc('/'));
+			/* d/dx x / y = [(d/dx x) * y - (d/dx y) * x] / y ^ 2 */
+			diff = frac(sub(mul(ast_copy(ast->right), ast_derive(ast->left, var)),
+					mul(ast_copy(ast->left), ast_derive(ast->right, var))),
+				    mul(ast_copy(ast->right), ast_copy(ast->right)));
 
-			num = ast_alloc(operator_alloc('-'));
-
-			fg = ast_alloc(operator_alloc('*'));
-			ast_copy(&fg->left, ast->right);
-			ast_insert(fg, ast_derive(ast->left, var));
-
-			gf = ast_alloc(operator_alloc('*'));
-			ast_copy(&gf->left, ast->left);
-			ast_insert(gf, ast_derive(ast->right, var));
-
-			ast_insert(num, fg);
-			ast_insert(num, gf);
-
-			/* TODO: Implement pow() */
-			den = ast_alloc(operator_alloc('*'));
-			ast_copy(&den->left, ast->right);
-			ast_copy(&den->right, ast->right);
-
-			ast_insert(diff, num);
-			ast_insert(diff, den);
 			return diff;
 		}
 		break;

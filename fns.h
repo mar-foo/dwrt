@@ -20,7 +20,7 @@
 
 Node*	ast_alloc(Symbol*);
 void	ast_cleanup(Node*);
-void	ast_copy(Node**, Node*);
+Node*	ast_copy(Node*);
 void 	ast_insert(Node*, Node*);
 void	ast_print(Node*);
 Symbol*	func_alloc(char*);
