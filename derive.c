@@ -19,66 +19,22 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "dat.h"
 #include "fns.h"
 
 static Node*	ast_derive(Node*, char);
+static int	is_same_var(Symbol*, char);
+static Node*	frac(Node*, Node*);
+static Node*	mul(Node*, Node*);
 static Node*	sum(Node*, Node*);
 static Node*	sub(Node*, Node*);
-static Node*	mul(Node*, Node*);
-static Node*	frac(Node*, Node*);
-static int	is_same_var(Symbol*, char);
-
-
-static Node*
-frac(Node *x, Node *y)
-{
-	Node *frac;
-
-	frac = ast_alloc(operator_alloc('/'));
-	ast_insert(frac, x);
-	ast_insert(frac, y);
-	return frac;
-}
-
-static Node*
-mul(Node *x, Node *y)
-{
-	Node *mul;
-
-	mul = ast_alloc(operator_alloc('*'));
-	ast_insert(mul, x);
-	ast_insert(mul, y);
-	return mul;
-}
-
-static Node*
-sum(Node *x, Node *y)
-{
-	Node *sum;
-
-	sum = ast_alloc(operator_alloc('+'));
-	ast_insert(sum, x);
-	ast_insert(sum, y);
-	return sum;
-}
-
-static Node*
-sub(Node *x, Node *y)
-{
-	Node *sub;
-
-	sub = ast_alloc(operator_alloc('-'));
-	ast_insert(sub, x);
-	ast_insert(sub, y);
-	return sub;
-}
-
+static void	usage(char*);
 
 /*
  * TODO: symplify numerical expressions
- * TODO: handle separate cases in different functions
  */
 static Node*
 ast_derive(Node *ast, char var)
@@ -91,7 +47,7 @@ ast_derive(Node *ast, char var)
 		if(is_same_var(ast->sym, var))
 			return ast_alloc(num_alloc(1));
 		else
-			return ast_alloc(var_alloc(ast->sym->content->var));
+			return ast_alloc(num_alloc(0));
 		break;
 	case S_NUM:
 		return ast_alloc(num_alloc(0));
@@ -102,6 +58,7 @@ ast_derive(Node *ast, char var)
 			diff = sum(ast_derive(ast->left, var), ast_derive(ast->right, var));
 			return diff;
 		} else if(ast->sym->content->op == '-') {
+			/* d/dx x - y = (d/dx x) - (d/dx y) */
 			diff = sub(ast_derive(ast->left, var), ast_derive(ast->right, var));
 			return diff;
 		} else if(ast->sym->content->op == '*') {
@@ -121,10 +78,33 @@ ast_derive(Node *ast, char var)
 	default:
 		break;
 	}
-
-	ast_insert(diff, ast_derive(ast->right, var));
-	ast_insert(diff, ast_derive(ast->left, var));
 	return diff;
+}
+
+static Node*
+frac(Node *x, Node *y)
+{
+	Node *frac;
+
+	if(is_num(x->sym) && num_equal(x->sym, 0)) {
+		ast_cleanup(y);
+		return x;
+	} else if(is_num(y->sym) && num_equal(y->sym, 1)) {
+		ast_cleanup(y);
+		return x;
+	} else if(is_num(y->sym) && is_num(x->sym)) {
+		/*
+		 * Error handling when dividing by zero? How do I propagate the errror?
+		 */
+		x->sym->content->num /= y->sym->content->num;
+		ast_cleanup(y);
+		return x;
+	} else {
+		frac = ast_alloc(operator_alloc('/'));
+		ast_insert(frac, y);
+		ast_insert(frac, x);
+		return frac;
+	}
 }
 
 static int
@@ -135,20 +115,111 @@ is_same_var(Symbol *sym, char var)
 	return sym->content->var == var;
 }
 
+static Node*
+mul(Node *x, Node *y)
+{
+	Node *mul;
+
+	if(is_num(x->sym) && num_equal(x->sym, 1)) {
+		ast_cleanup(x);
+		return y;
+	} else if(is_num(y->sym) && num_equal(y->sym, 1)) {
+		ast_cleanup(y);
+		return x;
+	} else if(is_num(x->sym) && num_equal(x->sym, 0)) {
+		ast_cleanup(y);
+		return x;
+	} else if(is_num(y->sym) && num_equal(y->sym, 0)) {
+		ast_cleanup(x);
+		return y;
+	} else if(is_num(y->sym) && is_num(x->sym)) {
+		x->sym->content->num *= y->sym->content->num;
+		ast_cleanup(y);
+		return x;
+	} else {
+		mul = ast_alloc(operator_alloc('*'));
+		ast_insert(mul, x);
+		ast_insert(mul, y);
+		return mul;
+	}
+}
+
+static Node*
+sum(Node *x, Node *y)
+{
+	Node *sum;
+
+	if(is_num(x->sym) && num_equal(x->sym, 0)) {
+		ast_cleanup(x);
+		return y;
+	} else if(is_num(y->sym) && num_equal(y->sym, 0)) {
+		ast_cleanup(y);
+		return x;
+	} else if(is_num(y->sym) && is_num(x->sym)) {
+		 x->sym->content->num += y->sym->content->num;
+		 ast_cleanup(y);
+		 return x;
+	} else {
+		sum = ast_alloc(operator_alloc('+'));
+		ast_insert(sum, x);
+		ast_insert(sum, y);
+		return sum;
+	}
+}
+
+static Node*
+sub(Node *x, Node *y)
+{
+	Node *sub;
+
+	if(is_num(x->sym) && num_equal(x->sym, 0)) {
+		ast_cleanup(x);
+		return y;
+	} else if(is_num(y->sym) && num_equal(y->sym, 0)) {
+		ast_cleanup(y);
+		return x;
+	} else if(is_num(y->sym) && is_num(x->sym)) {
+		x->sym->content->num -= y->sym->content->num;
+		ast_cleanup(y);
+		return x;
+	} else {
+		sub = ast_alloc(operator_alloc('-'));
+		ast_insert(sub, x);
+		ast_insert(sub, y);
+		return sub;
+	}
+}
+
+static void
+usage(char *arg0)
+{
+	fprintf(stderr, "%s: variable\n", arg0);
+}
+
 int
-main(void)
+main(int argc, char *argv[])
 {
 	Parser *p;
 	Node *diff;
 
+	if(argc != 2) {
+		usage(argv[0]);
+		exit(1);
+	}
+
 	p = p_init("./test.txt");
-	if(parse(p) < 0)
-		fprintf(stderr, p->err);
 	diff = NULL;
 
-	diff = ast_derive(p->ast, 'x');
+	if(parse(p) < 0) {
+		fprintf(stderr, p->err);
+		ast_cleanup(diff);
+		p_cleanup(p);
+	}
+
+	diff = ast_derive(p->ast, argv[1][0]);
 	ast_print(diff);
 	ast_cleanup(diff);
 	p_cleanup(p);
+
 	return 0;
 }
