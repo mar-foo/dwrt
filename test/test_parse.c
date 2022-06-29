@@ -140,7 +140,7 @@ START_TEST(test_lex_full)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("files/test_lex.txt");
+	l = l_init("files/test_lex_full.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_SYMBOL);
@@ -168,7 +168,7 @@ START_TEST(test_lex_full)
 
 	le = lex(l);
 	ck_assert(le->type == LE_NUMBER);
-	ck_assert_str_eq(le->lexeme, "2.5");
+	ck_assert_str_eq(le->lexeme, "3");
 	free(le);
 	free(le->lexeme);
 
@@ -187,7 +187,7 @@ START_TEST(test_lex_full)
 
 	le = lex(l);
 	ck_assert(le->type == LE_NUMBER);
-	ck_assert_str_eq(le->lexeme, "5");
+	ck_assert_str_eq(le->lexeme, "5.2");
 	free(le);
 	free(le->lexeme);
 
