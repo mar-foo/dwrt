@@ -41,7 +41,6 @@ START_TEST(test_l_init_exist)
 	l = l_init("files/test_lex.txt");
 	ck_assert_ptr_nonnull(l);
 	ck_assert_str_eq("files/test_lex.txt", l->filename);
-	ck_assert_uint_eq(l->line, 1);
 	ck_assert_ptr_eq(l->pos, l->data);
 	ck_assert_ptr_null(l->err);
 	ck_assert_ptr_nonnull(l->pos);
@@ -238,7 +237,7 @@ START_TEST(test_parse_malformed_expression)
 	p = p_init("files/test_parse_malformed_expression.txt");
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
-	ck_assert_str_eq(p->err, "files/test_parse_malformed_expression.txt:1 malformed expression\n");
+	ck_assert_str_eq(p->err, "files/test_parse_malformed_expression.txt: malformed expression\n");
 	p_cleanup(p);
 }
 END_TEST
@@ -290,7 +289,7 @@ START_TEST(test_parse_unbalanced_left_parenthesis)
 	p = p_init("files/test_parse_unbalanced_left_parenthesis.txt");
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
-	ck_assert_str_eq(p->err, "files/test_parse_unbalanced_left_parenthesis.txt:1 unbalanced parenthesis\n");
+	ck_assert_str_eq(p->err, "files/test_parse_unbalanced_left_parenthesis.txt: unbalanced parenthesis\n");
 	p_cleanup(p);
 }
 END_TEST
@@ -301,7 +300,7 @@ START_TEST(test_parse_unbalanced_right_parenthesis)
 	p = p_init("files/test_parse_unbalanced_right_parenthesis.txt");
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
-	ck_assert_str_eq(p->err, "files/test_parse_unbalanced_right_parenthesis.txt:1 unbalanced parenthesis\n");
+	ck_assert_str_eq(p->err, "files/test_parse_unbalanced_right_parenthesis.txt: unbalanced parenthesis\n");
 	p_cleanup(p);
 }
 END_TEST

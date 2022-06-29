@@ -52,7 +52,7 @@ typedef struct Parser Parser;
 typedef struct Symbol Symbol;
 
 struct Lexer {
-	size_t len, line; /* data length, current line */
+	size_t len; /* data length */
 	enum lex_states state; /* where was I? */
 	char *filename, *err;
 	char *data, *pos; /* contents of filename, current position */

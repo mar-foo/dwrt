@@ -72,7 +72,6 @@ l_init(char *filename)
 	l = emalloc(sizeof(Lexer));
 	l->filename = filename;
 	l->err = NULL;
-	l->line = 1;
 	l->state = LS_WS;
 
 	if((f = fopen(filename, "r")) == NULL) {
@@ -99,8 +98,6 @@ lex(Lexer *l)
 	offset = 0;
 	while((c = l_getc(l)) != EOF) {
 		if(isspace(c)) {
-			if(c == '\n')
-				l->line++;
 			switch(l->state) {
 			case LS_SYMBOL:
 				l->state = LS_WS;
@@ -165,8 +162,8 @@ lex(Lexer *l)
 					break;
 				default:
 					l->state = LS_ERROR;
-					l->err = emalloc(strlen(l->filename) + 45 + 1);
-					sprintf(l->err, "%s:%ld unexpected '.', not in a number literal\n", l->filename, l->line);
+					l->err = emalloc(strlen(l->filename) + 43 + 1);
+					sprintf(l->err, "%s: unexpected '.', not in a number literal\n", l->filename);
 					result->type = LE_ERROR;
 					return result;
 				}
@@ -208,8 +205,8 @@ lex(Lexer *l)
 				return result;
 			default:
 				l->state = LS_ERROR;
-				l->err = emalloc(strlen(l->filename) + 19 + 1);
-				sprintf(l->err, "%s:%ld %c is garbage\n", l->filename, l->line, c);
+				l->err = emalloc(strlen(l->filename) + 16 + 1);
+				sprintf(l->err, "%s: %c is garbage\n", l->filename, c);
 				result->type = LE_ERROR;
 				return result;
 			}
@@ -286,8 +283,8 @@ parse(Parser *p)
 		case LE_RPAREN:
 			while(! is_lparen(peek(op_stack))) {
 				if(op_stack == NULL) {
-					p->err = ecalloc(strlen(p->l->filename) + 29 + 1, sizeof(char));
-					sprintf(p->err, "%s:%ld unbalanced parenthesis\n", p->l->filename, p->l->line);
+					p->err = ecalloc(strlen(p->l->filename) + 26 + 1, sizeof(char));
+					sprintf(p->err, "%s: unbalanced parenthesis\n", p->l->filename);
 					return -1;
 				}
 				/* Error handling */
@@ -320,8 +317,8 @@ parse(Parser *p)
 		default:
 			stack_cleanup(op_stack);
 			stack_cleanup(node_stack);
-			p->err = ecalloc(strlen(p->l->filename) + strlen(le->lexeme) + 20 + 1, sizeof(char));
-			sprintf(p->err, "%s:%ld unknown symbol %s\n", p->l->filename, p->l->line, le->lexeme);
+			p->err = ecalloc(strlen(p->l->filename) + strlen(le->lexeme) + 18 + 1, sizeof(char));
+			sprintf(p->err, "%s: unknown symbol %s\n", p->l->filename, le->lexeme);
 			free(le->lexeme);
 			free(le);
 			return -1;
@@ -330,8 +327,8 @@ parse(Parser *p)
 	free(le);
 	while(op_stack != NULL) {
 		if(is_lparen(peek(op_stack))) {
-			p->err = ecalloc(strlen(p->l->filename) + 29 + 1, sizeof(char));
-			sprintf(p->err, "%s:%ld unbalanced parenthesis\n", p->l->filename, p->l->line);
+			p->err = ecalloc(strlen(p->l->filename) + 26 + 1, sizeof(char));
+			sprintf(p->err, "%s: unbalanced parenthesis\n", p->l->filename);
 			stack_cleanup(op_stack);
 			stack_cleanup(node_stack);
 			return -1;
@@ -348,8 +345,8 @@ parse(Parser *p)
 		goto err;
 	return 0;
 err:
-	p->err = ecalloc(strlen(p->l->filename) + 27 + 1, sizeof(char));
-	sprintf(p->err, "%s:%ld malformed expression\n", p->l->filename, p->l->line);
+	p->err = ecalloc(strlen(p->l->filename) + 24 + 1, sizeof(char));
+	sprintf(p->err, "%s: malformed expression\n", p->l->filename);
 	stack_cleanup(op_stack);
 	stack_cleanup(node_stack);
 	return -1;
