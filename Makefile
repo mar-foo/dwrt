@@ -7,6 +7,10 @@ ifeq (${DEBUG}, 1)
 	CFLAGS += -ggdb
 endif
 
+ifeq (${COV}, 1)
+	CFLAGS += -g -ftest-coverage -fprofile-arcs
+endif
+
 .PHONY: all clean tags check-syntax
 
 all: $(TARG)
@@ -14,17 +18,21 @@ all: $(TARG)
 %.o: %.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -c $^
 
-memcheck:
+cov: $(TARG)
+	@test -f "derive.gcda" || echo "Run make COV=1 to generate coverage information"
+	gcov $(OBJ) $(TARG)
+
+memcheck: $(TARG)
 	valgrind --leak-check=full ./$(TARG) x
 
 test: $(OBJ) memcheck
-	$(MAKE) -C test test
+	$(MAKE) -C test CFLAGS="$(CFLAGS)" test
 
 $(TARG): $(TARG).c $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
-	rm $(TARG) *.o
+	rm $(TARG) *.o *.gcov *.gcda *.gcno
 	$(MAKE) -C test clean
 
 tags:

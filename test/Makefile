@@ -1,7 +1,7 @@
 TESTS = test_util test_ast test_parse
 SRC = $(TESTS:%=%.c)
-LDFLAGS = `pkg-config --libs check`
-CFLAGS = `pkg-config --cflags check`
+LDFLAGS += `pkg-config --libs check`
+CFLAGS += `pkg-config --cflags check`
 
 .PHONY: all clean
 
@@ -18,4 +18,4 @@ test: $(TESTS)
 	for t in $(TESTS); do ./$$t ; done
 
 clean:
-	rm $(TESTS)
+	rm $(TESTS) *.gcno *.gcda *.gcov
