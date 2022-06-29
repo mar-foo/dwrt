@@ -25,6 +25,21 @@
 #include "../dat.h"
 #include "../fns.h"
 
+/* Test allocations */
+
+START_TEST(test_ast_alloc)
+{
+	Node *node;
+
+	node = ast_alloc(func_alloc("sin"));
+	ck_assert_ptr_null(node->left);
+	ck_assert_ptr_null(node->right);
+	ck_assert_ptr_null(node->parent);
+
+	ast_cleanup(node);
+}
+END_TEST
+
 START_TEST(test_func_alloc)
 {
 	Symbol *sym;
@@ -44,18 +59,6 @@ START_TEST(test_lparen_alloc)
 	sym = lparen_alloc();
 	ck_assert(sym->type == S_LPAREN);
 	ck_assert_str_eq(sym->content->func, "(");
-
-	symbol_cleanup(sym);
-}
-END_TEST
-
-START_TEST(test_rparen_alloc)
-{
-	Symbol *sym;
-
-	sym = rparen_alloc();
-	ck_assert(sym->type == S_RPAREN);
-	ck_assert_str_eq(sym->content->func, ")");
 
 	symbol_cleanup(sym);
 }
@@ -85,18 +88,31 @@ START_TEST(test_operator_alloc)
 }
 END_TEST
 
-START_TEST(test_ast_alloc)
+START_TEST(test_rparen_alloc)
 {
-	Node *node;
+	Symbol *sym;
 
-	node = ast_alloc(func_alloc("sin"));
-	ck_assert_ptr_null(node->left);
-	ck_assert_ptr_null(node->right);
-	ck_assert_ptr_null(node->parent);
+	sym = rparen_alloc();
+	ck_assert(sym->type == S_RPAREN);
+	ck_assert_str_eq(sym->content->func, ")");
 
-	ast_cleanup(node);
+	symbol_cleanup(sym);
 }
 END_TEST
+
+START_TEST(test_var_alloc)
+{
+	Symbol *sym;
+
+	sym = var_alloc('x');
+	ck_assert(sym->type == S_VAR);
+	ck_assert(sym->content->var == 'x');
+
+	symbol_cleanup(sym);
+}
+END_TEST
+
+/* Test ast manipulation functions */
 
 START_TEST(test_ast_copy_null)
 {
@@ -190,6 +206,8 @@ START_TEST(test_ast_insert)
 }
 END_TEST
 
+/* Test predicates */
+
 START_TEST(test_is_function)
 {
 	Symbol *sym;
@@ -258,12 +276,13 @@ ast_suite(void)
 	tc_ast = tcase_create("ast");
 	tc_predicates = tcase_create("predicates");
 
+	tcase_add_test(tc_alloc, test_ast_alloc);
 	tcase_add_test(tc_alloc, test_func_alloc);
 	tcase_add_test(tc_alloc, test_lparen_alloc);
-	tcase_add_test(tc_alloc, test_rparen_alloc);
 	tcase_add_test(tc_alloc, test_num_alloc);
 	tcase_add_test(tc_alloc, test_operator_alloc);
-	tcase_add_test(tc_alloc, test_ast_alloc);
+	tcase_add_test(tc_alloc, test_rparen_alloc);
+	tcase_add_test(tc_alloc, test_var_alloc);
 
 	tcase_add_test(tc_ast, test_ast_copy_null);
 	tcase_add_test(tc_ast, test_ast_copy_shallow);
