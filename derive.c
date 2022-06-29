@@ -214,6 +214,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, p->err);
 		ast_cleanup(diff);
 		p_cleanup(p);
+		exit(1);
 	}
 
 	diff = ast_derive(p->ast, argv[1][0]);
