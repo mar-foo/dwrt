@@ -103,6 +103,48 @@ ast_print_rec(Node *root, int level)
 	ast_print_rec(root->right, level + 1);
 }
 
+void
+ast_to_latex(Node *ast)
+{
+	switch(ast->sym->type) {
+	case S_VAR:
+		printf("%c", ast->sym->content->op);
+		return;
+	case S_NUM:
+		printf("%f", ast->sym->content->num);
+		return;
+	case S_FUNC:
+		printf("\\%s\\left(", ast->sym->content->func);
+		ast_to_latex(ast->right);
+		printf("\\right)");
+		return;
+	case S_OP:
+		switch(ast->sym->content->op) {
+		case '+':
+		case '-':
+		case '*':
+			ast_to_latex(ast->left);
+			printf(" %c ", ast->sym->content->op);
+			ast_to_latex(ast->right);
+			return;
+		case '/':
+			printf("\\frac{");
+			ast_to_latex(ast->left);
+			printf("}{");
+			ast_to_latex(ast->right);
+			printf("}");
+			return;
+		}
+		break;
+	case S_LPAREN:
+		printf("\\left(");
+		return;
+	case S_RPAREN:
+		printf("\\right)");
+		return;
+	}
+}
+
 Symbol*
 func_alloc(char *func)
 {

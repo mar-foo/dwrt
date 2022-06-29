@@ -289,7 +289,7 @@ main(int argc, char *argv[])
 	}
 
 	diff = ast_derive(p->ast, argv[1][0]);
-	ast_print(diff);
+	ast_to_latex(diff);
 	ast_free(diff);
 	p_free(p);
 
