@@ -212,7 +212,6 @@ main(int argc, char *argv[])
 
 	if(parse(p) < 0) {
 		fprintf(stderr, p->err);
-		ast_cleanup(diff);
 		p_cleanup(p);
 		exit(1);
 	}
