@@ -25,13 +25,42 @@
 #include "dat.h"
 #include "fns.h"
 
+static Node*	ast_cos(Node*);
+static Node*	ast_cosh(Node*);
 static Node*	ast_derive(Node*, char);
+static Node*	ast_frac(Node*, Node*);
+static Node*	ast_mul(Node*, Node*);
+static Node*	ast_sin(Node*);
+static Node*	ast_sinh(Node*);
+static Node*	ast_sum(Node*, Node*);
+static Node*	ast_sub(Node*, Node*);
 static int	is_same_var(Symbol*, char);
-static Node*	frac(Node*, Node*);
-static Node*	mul(Node*, Node*);
-static Node*	sum(Node*, Node*);
-static Node*	sub(Node*, Node*);
 static void	usage(char*);
+
+static Node*
+ast_cos(Node *x)
+{
+	Node *cos;
+	if(x == NULL)
+		return NULL;
+
+	cos = ast_alloc(func_alloc("cos"));
+	ast_insert(cos, x);
+	return cos;
+}
+
+static Node*
+ast_cosh(Node *x)
+{
+	Node *cosh;
+
+	if(x == NULL)
+		return NULL;
+
+	cosh = ast_alloc(func_alloc("cosh"));
+	ast_insert(cosh, x);
+	return cosh;
+}
 
 /*
  * TODO: symplify numerical expressions
@@ -39,7 +68,7 @@ static void	usage(char*);
 static Node*
 ast_derive(Node *ast, char var)
 {
-	Node *diff;
+	Node *arg, *diff;
 
 	diff = NULL;
 	switch(ast->sym->type) {
@@ -55,26 +84,45 @@ ast_derive(Node *ast, char var)
 	case S_OP:
 		if(ast->sym->content->op == '+') {
 			/* d/dx x + y = (d/dx x) + (d/dx y) */
-			diff = sum(ast_derive(ast->left, var), ast_derive(ast->right, var));
+			diff = ast_sum(ast_derive(ast->left, var), ast_derive(ast->right, var));
 			return diff;
 		} else if(ast->sym->content->op == '-') {
 			/* d/dx x - y = (d/dx x) - (d/dx y) */
-			diff = sub(ast_derive(ast->left, var), ast_derive(ast->right, var));
+			diff = ast_sub(ast_derive(ast->left, var), ast_derive(ast->right, var));
 			return diff;
 		} else if(ast->sym->content->op == '*') {
 			/* d/dx x * y = (d/dx x) * y + (d/dx y) * x */
-			diff = sum(mul(ast_copy(ast->right), ast_derive(ast->left, var)),
-				   mul(ast_copy(ast->left), ast_derive(ast->right, var)));
+			diff = ast_sum(ast_mul(ast_copy(ast->right), ast_derive(ast->left, var)),
+				   ast_mul(ast_copy(ast->left), ast_derive(ast->right, var)));
 			return diff;
 		} else if(ast->sym->content->op == '/') {
 			/* d/dx x / y = [(d/dx x) * y - (d/dx y) * x] / y ^ 2 */
-			diff = frac(sub(mul(ast_copy(ast->right), ast_derive(ast->left, var)),
-					mul(ast_copy(ast->left), ast_derive(ast->right, var))),
-				    mul(ast_copy(ast->right), ast_copy(ast->right)));
+			diff = ast_frac(ast_sub(ast_mul(ast_copy(ast->right), ast_derive(ast->left, var)),
+					ast_mul(ast_copy(ast->left), ast_derive(ast->right, var))),
+				    ast_mul(ast_copy(ast->right), ast_copy(ast->right)));
 
 			return diff;
 		}
 		break;
+	case S_FUNC:
+		arg = ast->right;
+		if(strcmp(ast->sym->content->func, "cos") == 0) {
+			return ast_mul(ast_derive(arg, var),
+				       ast_mul(ast_alloc(num_alloc(-1)), ast_sin(ast_copy(arg))));
+		} else if(strcmp(ast->sym->content->func, "cosh") == 0) {
+			return ast_mul(ast_derive(arg, var), ast_sinh(ast_copy(arg)));
+		} else if(strcmp(ast->sym->content->func, "sin") == 0) {
+			return ast_mul(ast_derive(arg, var), ast_cos(ast_copy(arg)));
+		} else if(strcmp(ast->sym->content->func, "sinh") == 0) {
+			return ast_mul(ast_derive(arg, var), ast_cosh(ast_copy(arg)));
+		} else if(strcmp(ast->sym->content->func, "tan") == 0) {
+			return ast_frac(ast_derive(arg, var),
+					ast_mul(ast_cos(ast_copy(arg)),
+						ast_cos(ast_copy(arg))));
+		} else if(strcmp(ast->sym->content->func, "tanh") == 0) {
+			return ast_frac(ast_derive(arg, var),
+					ast_mul(ast_cosh(ast_copy(arg)), ast_cosh(ast_copy(arg))));
+		}
 	default:
 		break;
 	}
@@ -82,9 +130,9 @@ ast_derive(Node *ast, char var)
 }
 
 static Node*
-frac(Node *x, Node *y)
+ast_frac(Node *x, Node *y)
 {
-	Node *frac;
+	Node *ast_frac;
 
 	if(is_num(x->sym) && num_equal(x->sym, 0)) {
 		ast_free(y);
@@ -100,25 +148,17 @@ frac(Node *x, Node *y)
 		ast_free(y);
 		return x;
 	} else {
-		frac = ast_alloc(operator_alloc('/'));
-		ast_insert(frac, y);
-		ast_insert(frac, x);
-		return frac;
+		ast_frac = ast_alloc(operator_alloc('/'));
+		ast_insert(ast_frac, y);
+		ast_insert(ast_frac, x);
+		return ast_frac;
 	}
 }
 
-static int
-is_same_var(Symbol *sym, char var)
-{
-	if(sym->type != S_VAR)
-		return 0;
-	return sym->content->var == var;
-}
-
 static Node*
-mul(Node *x, Node *y)
+ast_mul(Node *x, Node *y)
 {
-	Node *mul;
+	Node *ast_mul;
 
 	if(is_num(x->sym) && num_equal(x->sym, 1)) {
 		ast_free(x);
@@ -137,17 +177,41 @@ mul(Node *x, Node *y)
 		ast_free(y);
 		return x;
 	} else {
-		mul = ast_alloc(operator_alloc('*'));
-		ast_insert(mul, x);
-		ast_insert(mul, y);
-		return mul;
+		ast_mul = ast_alloc(operator_alloc('*'));
+		ast_insert(ast_mul, x);
+		ast_insert(ast_mul, y);
+		return ast_mul;
 	}
 }
 
 static Node*
-sum(Node *x, Node *y)
+ast_sin(Node *x)
 {
-	Node *sum;
+	Node *sin;
+
+	if(x == NULL)
+		return x;
+	sin = ast_alloc(func_alloc("sin"));
+	ast_insert(sin, x);
+	return sin;
+}
+
+static Node*
+ast_sinh(Node *x)
+{
+	Node *sinh;
+
+	if(x == NULL)
+		return x;
+	sinh = ast_alloc(func_alloc("sinh"));
+	ast_insert(sinh, x);
+	return sinh;
+}
+
+static Node*
+ast_sum(Node *x, Node *y)
+{
+	Node *ast_sum;
 
 	if(is_num(x->sym) && num_equal(x->sym, 0)) {
 		ast_free(x);
@@ -160,17 +224,17 @@ sum(Node *x, Node *y)
 		 ast_free(y);
 		 return x;
 	} else {
-		sum = ast_alloc(operator_alloc('+'));
-		ast_insert(sum, x);
-		ast_insert(sum, y);
-		return sum;
+		ast_sum = ast_alloc(operator_alloc('+'));
+		ast_insert(ast_sum, x);
+		ast_insert(ast_sum, y);
+		return ast_sum;
 	}
 }
 
 static Node*
-sub(Node *x, Node *y)
+ast_sub(Node *x, Node *y)
 {
-	Node *sub;
+	Node *ast_sub;
 
 	if(is_num(x->sym) && num_equal(x->sym, 0)) {
 		ast_free(x);
@@ -183,17 +247,25 @@ sub(Node *x, Node *y)
 		ast_free(y);
 		return x;
 	} else {
-		sub = ast_alloc(operator_alloc('-'));
-		ast_insert(sub, x);
-		ast_insert(sub, y);
-		return sub;
+		ast_sub = ast_alloc(operator_alloc('-'));
+		ast_insert(ast_sub, x);
+		ast_insert(ast_sub, y);
+		return ast_sub;
 	}
+}
+
+static int
+is_same_var(Symbol *sym, char var)
+{
+	if(sym->type != S_VAR)
+		return 0;
+	return sym->content->var == var;
 }
 
 static void
 usage(char *arg0)
 {
-	fprintf(stderr, "%s: variable\n", arg0);
+	fprintf(stderr, "usage: %s variable\n", arg0);
 }
 
 int
