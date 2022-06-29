@@ -36,6 +36,9 @@
 *.x86_64
 *.hex
 derive
+test/test_ast
+test/test_parse
+test/test_util
 
 # ctags
 TAGS
