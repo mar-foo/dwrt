@@ -29,7 +29,7 @@ START_TEST(test_l_init_non_exist)
 {
 	Lexer *l;
 
-	l = l_init("non_existent.txt");
+	l = l_init("files/non_existent.txt");
 	ck_assert_ptr_null(l);
 }
 END_TEST
@@ -38,9 +38,9 @@ START_TEST(test_l_init_exist)
 {
 	Lexer *l;
 
-	l = l_init("test_lex.txt");
+	l = l_init("files/test_lex.txt");
 	ck_assert_ptr_nonnull(l);
-	ck_assert_str_eq("test_lex.txt", l->filename);
+	ck_assert_str_eq("files/test_lex.txt", l->filename);
 	ck_assert_uint_eq(l->line, 1);
 	ck_assert_ptr_eq(l->pos, l->data);
 	ck_assert_ptr_null(l->err);
@@ -56,7 +56,7 @@ START_TEST(test_lex_lparen)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("test_lex_lparen.txt");
+	l = l_init("files/test_lex_lparen.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_LPAREN);
@@ -73,7 +73,7 @@ START_TEST(test_lex_number)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("test_lex_number.txt");
+	l = l_init("files/test_lex_number.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_NUMBER);
@@ -90,7 +90,7 @@ START_TEST(test_lex_operator)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("test_lex_operator.txt");
+	l = l_init("files/test_lex_operator.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_OPERATOR);
@@ -107,7 +107,7 @@ START_TEST(test_lex_rparen)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("test_lex_rparen.txt");
+	l = l_init("files/test_lex_rparen.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_RPAREN);
@@ -124,7 +124,7 @@ START_TEST(test_lex_symbol)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("test_lex_symbol.txt");
+	l = l_init("files/test_lex_symbol.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_SYMBOL);
@@ -141,7 +141,7 @@ START_TEST(test_lex_full)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("test_lex.txt");
+	l = l_init("files/test_lex.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_SYMBOL);
@@ -185,9 +185,10 @@ START_TEST(test_lex_full)
 	free(le);
 	free(le->lexeme);
 
+
 	le = lex(l);
-	ck_assert(le->type == LE_SYMBOL);
-	ck_assert_str_eq(le->lexeme, "y");
+	ck_assert(le->type == LE_NUMBER);
+	ck_assert_str_eq(le->lexeme, "5");
 	free(le);
 	free(le->lexeme);
 
@@ -198,8 +199,8 @@ START_TEST(test_lex_full)
 	free(le->lexeme);
 
 	le = lex(l);
-	ck_assert(le->type == LE_NUMBER);
-	ck_assert_str_eq(le->lexeme, "5");
+	ck_assert(le->type == LE_SYMBOL);
+	ck_assert_str_eq(le->lexeme, "y");
 	free(le);
 	free(le->lexeme);
 
