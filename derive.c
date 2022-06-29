@@ -87,17 +87,17 @@ frac(Node *x, Node *y)
 	Node *frac;
 
 	if(is_num(x->sym) && num_equal(x->sym, 0)) {
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else if(is_num(y->sym) && num_equal(y->sym, 1)) {
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
 		/*
 		 * Error handling when dividing by zero? How do I propagate the error?
 		 */
 		x->sym->content->num /= y->sym->content->num;
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else {
 		frac = ast_alloc(operator_alloc('/'));
@@ -121,20 +121,20 @@ mul(Node *x, Node *y)
 	Node *mul;
 
 	if(is_num(x->sym) && num_equal(x->sym, 1)) {
-		ast_cleanup(x);
+		ast_free(x);
 		return y;
 	} else if(is_num(y->sym) && num_equal(y->sym, 1)) {
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else if(is_num(x->sym) && num_equal(x->sym, 0)) {
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else if(is_num(y->sym) && num_equal(y->sym, 0)) {
-		ast_cleanup(x);
+		ast_free(x);
 		return y;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
 		x->sym->content->num *= y->sym->content->num;
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else {
 		mul = ast_alloc(operator_alloc('*'));
@@ -150,14 +150,14 @@ sum(Node *x, Node *y)
 	Node *sum;
 
 	if(is_num(x->sym) && num_equal(x->sym, 0)) {
-		ast_cleanup(x);
+		ast_free(x);
 		return y;
 	} else if(is_num(y->sym) && num_equal(y->sym, 0)) {
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
 		 x->sym->content->num += y->sym->content->num;
-		 ast_cleanup(y);
+		 ast_free(y);
 		 return x;
 	} else {
 		sum = ast_alloc(operator_alloc('+'));
@@ -173,14 +173,14 @@ sub(Node *x, Node *y)
 	Node *sub;
 
 	if(is_num(x->sym) && num_equal(x->sym, 0)) {
-		ast_cleanup(x);
+		ast_free(x);
 		return y;
 	} else if(is_num(y->sym) && num_equal(y->sym, 0)) {
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
 		x->sym->content->num -= y->sym->content->num;
-		ast_cleanup(y);
+		ast_free(y);
 		return x;
 	} else {
 		sub = ast_alloc(operator_alloc('-'));
@@ -212,14 +212,14 @@ main(int argc, char *argv[])
 
 	if(parse(p) < 0) {
 		fprintf(stderr, p->err);
-		p_cleanup(p);
+		p_free(p);
 		exit(1);
 	}
 
 	diff = ast_derive(p->ast, argv[1][0]);
 	ast_print(diff);
-	ast_cleanup(diff);
-	p_cleanup(p);
+	ast_free(diff);
+	p_free(p);
 
 	return 0;
 }

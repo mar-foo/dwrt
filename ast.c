@@ -41,13 +41,13 @@ ast_alloc(Symbol *sym)
 }
 
 void
-ast_cleanup(Node *ast)
+ast_free(Node *ast)
 {
 	if(ast == NULL)
 		return;
-	symbol_cleanup(ast->sym);
-	ast_cleanup(ast->right);
-	ast_cleanup(ast->left);
+	symbol_free(ast->sym);
+	ast_free(ast->right);
+	ast_free(ast->left);
 	free(ast);
 }
 
@@ -213,7 +213,7 @@ print_tabs(int tabs)
 }
 
 void
-symbol_cleanup(Symbol *sym)
+symbol_free(Symbol *sym)
 {
 	if(sym == NULL)
 		return;

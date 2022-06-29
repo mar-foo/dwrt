@@ -19,13 +19,13 @@
  */
 
 Node*	ast_alloc(Symbol*);
-void	ast_cleanup(Node*);
+void	ast_free(Node*);
 Node*	ast_copy(Node*);
 void 	ast_insert(Node*, Node*);
 void	ast_print(Node*);
 Symbol*	func_alloc(char*);
 Lexer*	l_init(char*);
-void	l_cleanup(Lexer*);
+void	l_free(Lexer*);
 Lexeme*	lex(Lexer*);
 Symbol*	lparen_alloc(void);
 Symbol*	rparen_alloc(void);
@@ -39,10 +39,10 @@ int	is_lparen(Symbol*);
 int	is_operator(Symbol*);
 int	is_num(Symbol*);
 int	num_equal(Symbol*, double);
-void	p_cleanup(Parser*);
+void	p_free(Parser*);
 Parser*	p_init(char*);
 int	parse(Parser*);
 char*	readall(FILE*);
 size_t	strappend(char*, char, size_t, size_t);
-void	symbol_cleanup(Symbol*);
+void	symbol_free(Symbol*);
 void	symbol_print(Symbol*);

@@ -36,7 +36,7 @@ START_TEST(test_ast_alloc)
 	ck_assert_ptr_null(node->right);
 	ck_assert_ptr_null(node->parent);
 
-	ast_cleanup(node);
+	ast_free(node);
 }
 END_TEST
 
@@ -48,7 +48,7 @@ START_TEST(test_func_alloc)
 	ck_assert(sym->type == S_FUNC);
 	ck_assert_str_eq(sym->content->func, "sin");
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -60,7 +60,7 @@ START_TEST(test_lparen_alloc)
 	ck_assert(sym->type == S_LPAREN);
 	ck_assert_str_eq(sym->content->func, "(");
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -72,7 +72,7 @@ START_TEST(test_num_alloc)
 	ck_assert(sym->type == S_NUM);
 	ck_assert_double_eq(sym->content->num, 5);
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -84,7 +84,7 @@ START_TEST(test_operator_alloc)
 	ck_assert(sym->type == S_OP);
 	ck_assert(sym->content->op == '+');
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -96,7 +96,7 @@ START_TEST(test_rparen_alloc)
 	ck_assert(sym->type == S_RPAREN);
 	ck_assert_str_eq(sym->content->func, ")");
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -108,7 +108,7 @@ START_TEST(test_var_alloc)
 	ck_assert(sym->type == S_VAR);
 	ck_assert(sym->content->var == 'x');
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -136,8 +136,8 @@ START_TEST(test_ast_copy_shallow)
 	ck_assert_ptr_null(dest->right);
 	ck_assert_ptr_null(dest->left);
 
-	ast_cleanup(dest);
-	ast_cleanup(src);
+	ast_free(dest);
+	ast_free(src);
 }
 END_TEST
 
@@ -164,8 +164,8 @@ START_TEST(test_ast_copy_deep)
 	ck_assert(is_num(dest->left->sym));
 	ck_assert(num_equal(dest->left->sym, 5));
 
-	ast_cleanup(dest);
-	ast_cleanup(src);
+	ast_free(dest);
+	ast_free(src);
 }
 END_TEST
 
@@ -178,7 +178,7 @@ START_TEST(test_ast_insert_null)
 	ck_assert_ptr_null(node->left);
 	ck_assert_ptr_null(node->right);
 
-	ast_cleanup(node);
+	ast_free(node);
 }
 END_TEST
 
@@ -202,7 +202,7 @@ START_TEST(test_ast_insert)
 	ck_assert_ptr_nonnull(node->left);
 	ck_assert(num_equal(node->left->sym, 55));
 
-	ast_cleanup(node);
+	ast_free(node);
 }
 END_TEST
 
@@ -215,7 +215,7 @@ START_TEST(test_is_function)
 	sym = func_alloc("sin");
 	ck_assert(is_function(sym));
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -226,7 +226,7 @@ START_TEST(test_is_lparen)
 	sym = lparen_alloc();
 	ck_assert(is_lparen(sym));
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -237,7 +237,7 @@ START_TEST(test_is_operator)
 	sym = operator_alloc('+');
 	ck_assert(is_operator(sym));
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -248,7 +248,7 @@ START_TEST(test_is_num)
 	sym = num_alloc(44);
 	ck_assert(is_num(sym));
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 
@@ -260,7 +260,7 @@ START_TEST(test_num_equal)
 	ck_assert(is_num(sym));
 	ck_assert(num_equal(sym, 44));
 
-	symbol_cleanup(sym);
+	symbol_free(sym);
 }
 END_TEST
 

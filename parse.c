@@ -46,7 +46,7 @@ static void*	pop(Stack**);
 static int	precedence(Symbol*);
 static Stack*	push(Stack*, void*, enum stack_type);
 static Stack*	stack_alloc(void*, enum stack_type);
-static void	stack_cleanup(Stack*);
+static void	stack_free(Stack*);
 static int	stack_len(Stack*);
 
 static char
@@ -56,7 +56,7 @@ l_getc(Lexer *l)
 }
 
 void
-l_cleanup(Lexer *lex)
+l_free(Lexer *lex)
 {
 	free(lex->data);
 	free(lex->err);
@@ -216,10 +216,10 @@ lex(Lexer *l)
 }
 
 void
-p_cleanup(Parser *p)
+p_free(Parser *p)
 {
-	l_cleanup(p->l);
-	ast_cleanup(p->ast);
+	l_free(p->l);
+	ast_free(p->ast);
 	free(p->err);
 	free(p);
 }
@@ -296,7 +296,7 @@ parse(Parser *p)
 				ast_insert(tmp, pop(&node_stack));
 				node_stack = push(node_stack, tmp, NODE);
 			}
-			symbol_cleanup(pop(&op_stack)); /* Left paren, discarded */
+			symbol_free(pop(&op_stack)); /* Left paren, discarded */
 			if(peek(op_stack) != NULL && is_function(peek(op_stack))) {
 				tmp = ast_alloc(pop(&op_stack));
 				ast_insert(tmp, pop(&node_stack));
@@ -315,8 +315,8 @@ parse(Parser *p)
 			}
 			break;
 		default:
-			stack_cleanup(op_stack);
-			stack_cleanup(node_stack);
+			stack_free(op_stack);
+			stack_free(node_stack);
 			p->err = ecalloc(strlen(p->l->filename) + strlen(le->lexeme) + 18 + 1, sizeof(char));
 			sprintf(p->err, "%s: unknown symbol %s\n", p->l->filename, le->lexeme);
 			free(le->lexeme);
@@ -329,8 +329,8 @@ parse(Parser *p)
 		if(is_lparen(peek(op_stack))) {
 			p->err = ecalloc(strlen(p->l->filename) + 26 + 1, sizeof(char));
 			sprintf(p->err, "%s: unbalanced parenthesis\n", p->l->filename);
-			stack_cleanup(op_stack);
-			stack_cleanup(node_stack);
+			stack_free(op_stack);
+			stack_free(node_stack);
 			return -1;
 		}
 		tmp = ast_alloc(pop(&op_stack));
@@ -347,8 +347,8 @@ parse(Parser *p)
 err:
 	p->err = ecalloc(strlen(p->l->filename) + 24 + 1, sizeof(char));
 	sprintf(p->err, "%s: malformed expression\n", p->l->filename);
-	stack_cleanup(op_stack);
-	stack_cleanup(node_stack);
+	stack_free(op_stack);
+	stack_free(node_stack);
 	return -1;
 }
 
@@ -421,19 +421,19 @@ stack_alloc(void *data, enum stack_type type)
 }
 
 static void
-stack_cleanup(Stack *s)
+stack_free(Stack *s)
 {
 	if(s == NULL)
 		return;
 	while(s->next != NULL)
 		if(s->type == SYM)
-			symbol_cleanup(pop(&s));
+			symbol_free(pop(&s));
 		else
-			ast_cleanup(pop(&s));
+			ast_free(pop(&s));
 	if(s->type == SYM)
-		symbol_cleanup(s->data);
+		symbol_free(s->data);
 	else
-		ast_cleanup(pop(&s));
+		ast_free(pop(&s));
 	free(s);
 }
 

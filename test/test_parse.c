@@ -46,7 +46,7 @@ START_TEST(test_l_init_exist)
 	ck_assert_ptr_nonnull(l->pos);
 	ck_assert_ptr_nonnull(l->data);
 
-	l_cleanup(l);
+	l_free(l);
 }
 END_TEST
 
@@ -63,7 +63,7 @@ START_TEST(test_lex_lparen)
 
 	free(le);
 	free(le->lexeme);
-	l_cleanup(l);
+	l_free(l);
 }
 END_TEST
 
@@ -80,7 +80,7 @@ START_TEST(test_lex_number)
 
 	free(le);
 	free(le->lexeme);
-	l_cleanup(l);
+	l_free(l);
 }
 END_TEST
 
@@ -97,7 +97,7 @@ START_TEST(test_lex_operator)
 
 	free(le);
 	free(le->lexeme);
-	l_cleanup(l);
+	l_free(l);
 }
 END_TEST
 
@@ -114,7 +114,7 @@ START_TEST(test_lex_rparen)
 
 	free(le);
 	free(le->lexeme);
-	l_cleanup(l);
+	l_free(l);
 }
 END_TEST
 
@@ -131,7 +131,7 @@ START_TEST(test_lex_symbol)
 
 	free(le);
 	free(le->lexeme);
-	l_cleanup(l);
+	l_free(l);
 }
 END_TEST
 
@@ -215,7 +215,7 @@ START_TEST(test_lex_full)
 	free(le);
 	free(le->lexeme);
 
-	l_cleanup(l);
+	l_free(l);
 }
 END_TEST
 
@@ -227,7 +227,7 @@ START_TEST(test_parse_empty)
 
 	ck_assert(parse(p) == 0);
 	ck_assert_ptr_null(p->ast);
-	p_cleanup(p);
+	p_free(p);
 }
 END_TEST
 
@@ -238,7 +238,7 @@ START_TEST(test_parse_malformed_expression)
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
 	ck_assert_str_eq(p->err, "files/test_parse_malformed_expression.txt: malformed expression\n");
-	p_cleanup(p);
+	p_free(p);
 }
 END_TEST
 
@@ -258,7 +258,7 @@ START_TEST(test_parse_non_parenthesized)
 	ck_assert(p->ast->left->left->right->sym->content->var == 'x');
 	ck_assert(num_equal(p->ast->left->left->left->sym, 2));
 
-	p_cleanup(p);
+	p_free(p);
 }
 END_TEST
 
@@ -279,7 +279,7 @@ START_TEST(test_parse_parenthesized)
 	ck_assert(p->ast->left->left->right->sym->content->var == 'x');
 	ck_assert(num_equal(p->ast->left->left->left->sym, 2));
 
-	p_cleanup(p);
+	p_free(p);
 }
 END_TEST
 
@@ -290,7 +290,7 @@ START_TEST(test_parse_unbalanced_left_parenthesis)
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
 	ck_assert_str_eq(p->err, "files/test_parse_unbalanced_left_parenthesis.txt: unbalanced parenthesis\n");
-	p_cleanup(p);
+	p_free(p);
 }
 END_TEST
 
@@ -301,7 +301,7 @@ START_TEST(test_parse_unbalanced_right_parenthesis)
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
 	ck_assert_str_eq(p->err, "files/test_parse_unbalanced_right_parenthesis.txt: unbalanced parenthesis\n");
-	p_cleanup(p);
+	p_free(p);
 }
 END_TEST
 
