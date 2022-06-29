@@ -14,14 +14,18 @@ all: $(TARG)
 %.o: %.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -c $^
 
-test: $(OBJ)
-	$(MAKE) -C test
+memcheck:
+	valgrind --leak-check=full ./$(TARG) x
+
+test: $(OBJ) memcheck
+	$(MAKE) -C test test
 
 $(TARG): $(TARG).c $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
 	rm $(TARG) *.o
+	$(MAKE) -C test clean
 
 tags:
 	etags *.c *.h
