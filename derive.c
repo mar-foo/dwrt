@@ -94,7 +94,7 @@ frac(Node *x, Node *y)
 		return x;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
 		/*
-		 * Error handling when dividing by zero? How do I propagate the errror?
+		 * Error handling when dividing by zero? How do I propagate the error?
 		 */
 		x->sym->content->num /= y->sym->content->num;
 		ast_cleanup(y);
