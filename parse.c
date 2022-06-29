@@ -70,9 +70,9 @@ l_init(char *filename)
 	Lexer *l;
 
 	l = emalloc(sizeof(Lexer));
-	l->filename = filename,
-	l->err = NULL,
-	l->line = 1,
+	l->filename = filename;
+	l->err = NULL;
+	l->line = 1;
 	l->state = LS_WS;
 
 	if((f = fopen(filename, "r")) == NULL) {
