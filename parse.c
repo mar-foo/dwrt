@@ -41,8 +41,6 @@ struct Stack {
 };
 
 static char	l_getc(Lexer*);
-static Lexer*	l_init(char*);
-static Lexeme*	lex(Lexer*);
 static void*	peek(Stack*);
 static void*	pop(Stack**);
 static int	precedence(Symbol*);
@@ -65,7 +63,7 @@ l_cleanup(Lexer *lex)
 	free(lex);
 }
 
-static Lexer*
+Lexer*
 l_init(char *filename)
 {
 	FILE *f;
@@ -77,8 +75,10 @@ l_init(char *filename)
 	l->line = 1,
 	l->state = LS_WS;
 
-	if((f = fopen(filename, "r")) == NULL)
+	if((f = fopen(filename, "r")) == NULL) {
+		free(l);
 		return NULL;
+	}
 	l->pos = l->data = readall(f);
 
 	fclose(f);

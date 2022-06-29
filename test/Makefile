@@ -1,4 +1,4 @@
-TESTS = test_util test_ast
+TESTS = test_util test_ast test_parse
 SRC = $(TESTS:%=%.c)
 LDFLAGS = `pkg-config --libs check`
 CFLAGS = `pkg-config --cflags check`
@@ -12,7 +12,9 @@ test_util: test_util.c ../util.o
 
 test_ast: test_ast.c ../ast.o ../util.o
 
-test:
+test_parse: test_parse.c ../parse.o ../util.o ../ast.o
+
+test: $(TESTS)
 	for t in $(TESTS); do ./$$t ; done
 
 clean:
