@@ -197,8 +197,8 @@ ast_mul(Node *x, Node *y)
 		return x;
 	} else {
 		ast_mul = ast_alloc(operator_alloc('*'));
-		ast_insert(ast_mul, x);
 		ast_insert(ast_mul, y);
+		ast_insert(ast_mul, x);
 		return ast_mul;
 	}
 }
@@ -252,8 +252,8 @@ ast_sum(Node *x, Node *y)
 		 return x;
 	} else {
 		ast_sum = ast_alloc(operator_alloc('+'));
-		ast_insert(ast_sum, x);
 		ast_insert(ast_sum, y);
+		ast_insert(ast_sum, x);
 		return ast_sum;
 	}
 }
@@ -275,8 +275,8 @@ ast_sub(Node *x, Node *y)
 		return x;
 	} else {
 		ast_sub = ast_alloc(operator_alloc('-'));
-		ast_insert(ast_sub, x);
 		ast_insert(ast_sub, y);
+		ast_insert(ast_sub, x);
 		return ast_sub;
 	}
 }
