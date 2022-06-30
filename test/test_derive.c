@@ -435,11 +435,45 @@ START_TEST(test_ast_sum)
 }
 END_TEST
 
+START_TEST(test_is_same_var_fail)
+{
+	Symbol *sym;
+
+	sym = var_alloc('x');
+
+	ck_assert(! is_same_var(sym, 'y'));
+
+	symbol_free(sym);
+}
+END_TEST
+
+START_TEST(test_is_same_var_not_var)
+{
+	Symbol *sym;
+
+	sym = num_alloc(5);
+	ck_assert(! is_same_var(sym, 'x'));
+
+	symbol_free(sym);
+}
+END_TEST
+
+START_TEST(test_is_same_var)
+{
+	Symbol *sym;
+
+	sym = var_alloc('x');
+
+	ck_assert(is_same_var(sym, 'x'));
+	symbol_free(sym);
+}
+END_TEST
+
 Suite*
 derive_suite()
 {
 	Suite *s;
-	TCase *tc_frac, *tc_func, *tc_mul, *tc_sub, *tc_sum;
+	TCase *tc_frac, *tc_func, *tc_mul, *tc_sub, *tc_sum, *tc_var;
 
 	s = suite_create("derive");
 
@@ -448,6 +482,7 @@ derive_suite()
 	tc_mul = tcase_create("mul");
 	tc_sub = tcase_create("sub");
 	tc_sum = tcase_create("sum");
+	tc_var = tcase_create("var");
 
 	tcase_add_test(tc_frac, test_ast_frac_two_num);
 	tcase_add_test(tc_frac, test_ast_frac_left_is_zero);
@@ -481,11 +516,16 @@ derive_suite()
 	tcase_add_test(tc_sum, test_ast_sum_two_num);
 	tcase_add_test(tc_sum, test_ast_sum);
 
+	tcase_add_test(tc_var, test_is_same_var_fail);
+	tcase_add_test(tc_var, test_is_same_var_not_var);
+	tcase_add_test(tc_var, test_is_same_var);
+
 	suite_add_tcase(s, tc_frac);
 	suite_add_tcase(s, tc_func);
 	suite_add_tcase(s, tc_mul);
 	suite_add_tcase(s, tc_sum);
 	suite_add_tcase(s, tc_sub);
+	suite_add_tcase(s, tc_var);
 
 	return s;
 }
