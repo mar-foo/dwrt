@@ -135,6 +135,23 @@ START_TEST(test_lex_symbol)
 }
 END_TEST
 
+START_TEST(test_lex_unknown)
+{
+	Lexeme *le;
+	Lexer *l;
+
+	l = l_init("files/test_lex_unknown.txt");
+
+	le = lex(l);
+	ck_assert(le->type == LE_ERROR);
+	ck_assert_str_eq(l->err, "files/test_lex_unknown.txt: $ is garbage\n");
+
+	free(le);
+	free(le->lexeme);
+	l_free(l);
+}
+END_TEST
+
 START_TEST(test_lex_full)
 {
 	Lexeme *le;
@@ -334,6 +351,7 @@ parse_suite(void)
 	tcase_add_test(tc_lex, test_lex_operator);
 	tcase_add_test(tc_lex, test_lex_rparen);
 	tcase_add_test(tc_lex, test_lex_symbol);
+	tcase_add_test(tc_lex, test_lex_unknown);
 
 	tcase_add_test(tc_parse, test_parse_empty);
 	tcase_add_test(tc_parse, test_parse_malformed_expression);
