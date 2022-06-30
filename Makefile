@@ -36,7 +36,7 @@ $(TARG): main.c $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
-	rm $(TARG) *.o *.gcov *.gcda *.gcno
+	rm -f $(TARG) *.o *.gcov *.gcda *.gcno
 	$(MAKE) -C test clean
 
 tags:

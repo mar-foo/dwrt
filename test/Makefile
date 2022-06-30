@@ -20,4 +20,4 @@ test: $(TESTS)
 	for t in $(TESTS); do ./$$t ; done
 
 clean:
-	rm $(TESTS) *.gcno *.gcda *.gcov
+	rm -f $(TESTS) *.gcno *.gcda *.gcov
