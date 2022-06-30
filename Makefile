@@ -1,7 +1,8 @@
 CFLAGS = -Wall -Wextra -Werror -pedantic -ansi
 LDFLAGS = -lm
 TARG = derive
-OBJ = parse.o util.o ast.o
+OBJ = parse.o util.o ast.o derive.o
+SRC = $(OBJ:%.o=%.c)
 
 ifeq (${DEBUG}, 1)
 	CFLAGS += -ggdb
@@ -20,15 +21,18 @@ all: $(TARG)
 
 cov: $(TARG)
 	@test -f "derive.gcda" || echo "Run make COV=1 to generate coverage information"
-	gcov $(OBJ) $(TARG)
+	@test -d lcov || mkdir lcov
+	gcov $(SRC) $(TARG)
+	lcov -c -d . -o lcov/lcov.info
+	genhtml -o lcov/ lcov/lcov.info
 
 memcheck: $(TARG)
 	valgrind --leak-check=full ./$(TARG) x
 
-test: $(OBJ) memcheck
+test: $(OBJ)
 	$(MAKE) -C test CFLAGS="$(CFLAGS)" test
 
-$(TARG): $(TARG).c $(OBJ)
+$(TARG): main.c $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
