@@ -41,6 +41,17 @@ START_TEST(test_ast_cos)
 }
 END_TEST
 
+START_TEST(test_ast_cos_null)
+{
+	Node *ast;
+
+	ast = ast_cos(NULL);
+	ck_assert_ptr_null(ast);
+
+	ast_free(ast);
+}
+END_TEST
+
 START_TEST(test_ast_cosh)
 {
 	Node *ast;
@@ -55,6 +66,15 @@ START_TEST(test_ast_cosh)
 	ck_assert(ast->right->sym->content->var == 'y');
 
 	ast_free(ast);
+}
+END_TEST
+
+START_TEST(test_ast_cosh_null)
+{
+	Node *ast;
+
+	ast = ast_cosh(NULL);
+	ck_assert_ptr_null(ast);
 }
 END_TEST
 
@@ -248,6 +268,15 @@ START_TEST(test_ast_sin)
 }
 END_TEST
 
+START_TEST(test_ast_sin_null)
+{
+	Node *ast;
+
+	ast = ast_sin(NULL);
+	ck_assert_ptr_null(ast);
+}
+END_TEST
+
 START_TEST(test_ast_sinh)
 {
 	Node *ast;
@@ -262,6 +291,15 @@ START_TEST(test_ast_sinh)
 	ck_assert(ast->right->sym->content->var == 'y');
 
 	ast_free(ast);
+}
+END_TEST
+
+START_TEST(test_ast_sinh_null)
+{
+	Node *ast;
+
+	ast = ast_sinh(NULL);
+	ck_assert_ptr_null(ast);
 }
 END_TEST
 
@@ -418,9 +456,13 @@ derive_suite()
 	tcase_add_test(tc_frac, test_ast_frac);
 
 	tcase_add_test(tc_func, test_ast_cos);
+	tcase_add_test(tc_func, test_ast_cos_null);
 	tcase_add_test(tc_func, test_ast_cosh);
+	tcase_add_test(tc_func, test_ast_cosh_null);
 	tcase_add_test(tc_func, test_ast_sin);
+	tcase_add_test(tc_func, test_ast_sin_null);
 	tcase_add_test(tc_func, test_ast_sinh);
+	tcase_add_test(tc_func, test_ast_sinh_null);
 
 	tcase_add_test(tc_mul, test_ast_mul_left_is_one);
 	tcase_add_test(tc_mul, test_ast_mul_left_is_zero);
