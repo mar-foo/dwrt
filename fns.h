@@ -20,6 +20,7 @@
 
 Node*	ast_alloc(Symbol*);
 Node*	ast_copy(Node*);
+Node*	ast_derive(Node*, char);
 void	ast_free(Node*);
 void 	ast_insert(Node*, Node*);
 void	ast_print(Node*);
