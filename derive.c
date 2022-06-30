@@ -155,6 +155,10 @@ ast_frac(Node *x, Node *y)
 	} else if(is_num(y->sym) && num_equal(y->sym, 1)) {
 		ast_free(y);
 		return x;
+	} else if(is_num(y->sym) && num_equal(y->sym, 0)) {
+		ast_free(y);
+		ast_free(x);
+		return NULL;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
 		/*
 		 * Error handling when dividing by zero? How do I propagate the error?
