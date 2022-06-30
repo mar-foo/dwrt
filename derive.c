@@ -56,11 +56,14 @@ static Node*
 ast_cosh(Node *x)
 {
 	Node *cosh;
+	char *f;
 
 	if(x == NULL)
 		return NULL;
 
-	cosh = ast_alloc(func_alloc("cosh"));
+	f = ecalloc(5, sizeof(char));
+	f = strcpy(f, "cosh");
+	cosh = ast_alloc(func_alloc(f));
 	ast_insert(cosh, x);
 	return cosh;
 }
@@ -200,10 +203,14 @@ static Node*
 ast_sin(Node *x)
 {
 	Node *sin;
+	char *f;
 
 	if(x == NULL)
 		return x;
-	sin = ast_alloc(func_alloc("sin"));
+
+	f = ecalloc(4, sizeof(char));
+	f = strcpy(f, "sin");
+	sin = ast_alloc(func_alloc(f));
 	ast_insert(sin, x);
 	return sin;
 }
@@ -212,10 +219,14 @@ static Node*
 ast_sinh(Node *x)
 {
 	Node *sinh;
+	char *f;
 
 	if(x == NULL)
 		return x;
-	sinh = ast_alloc(func_alloc("sinh"));
+
+	f = ecalloc(5, sizeof(char));
+	f = strcpy(f, "sinh");
+	sinh = ast_alloc(func_alloc(f));
 	ast_insert(sinh, x);
 	return sinh;
 }
