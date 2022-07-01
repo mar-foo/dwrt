@@ -330,6 +330,8 @@ parse(Parser *p)
 					stack_free(node_stack);
 					p->err = ecalloc(strlen(p->l->filename) + strlen(le->lexeme) + 21 + 1, sizeof(char));
 					sprintf(p->err, "%s: unknown function %s\n", p->l->filename, le->lexeme);
+					free(le->lexeme);
+					free(le);
 					return -1;
 				}
 				found = 0;
@@ -370,6 +372,7 @@ err:
 	sprintf(p->err, "%s: malformed expression\n", p->l->filename);
 	stack_free(op_stack);
 	stack_free(node_stack);
+
 	return -1;
 }
 
