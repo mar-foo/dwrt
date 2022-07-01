@@ -26,6 +26,7 @@
 #include "dat.h"
 #include "fns.h"
 
+#define KNOWN_FUNCS 6
 #define LEXEME_MINSZ 10
 
 enum stack_type {
@@ -48,6 +49,8 @@ static Stack*	push(Stack*, void*, enum stack_type);
 static Stack*	stack_alloc(void*, enum stack_type);
 static void	stack_free(Stack*);
 static int	stack_len(Stack*);
+
+static char *known_funcs[] = {"cos", "cosh", "sin", "sinh", "tan", "tanh"};
 
 static char
 l_getc(Lexer *l)
@@ -242,6 +245,8 @@ p_init(char *filename)
 int
 parse(Parser *p)
 {
+	size_t i;
+	int found;
 	Lexeme *le;
 	Node *tmp;
 	Stack *op_stack, *node_stack;
@@ -310,8 +315,24 @@ parse(Parser *p)
 				node_stack = push(node_stack, ast_alloc(sym), NODE);
 				free(le->lexeme);
 			} else {
-				sym = func_alloc(le->lexeme);
-				op_stack = push(op_stack, sym, SYM);
+				/* Throw error on unknown functions */
+				found = 0;
+				for(i = 0; i < KNOWN_FUNCS; i++) {
+					if(strcmp(le->lexeme, known_funcs[i]) == 0) {
+						sym = func_alloc(le->lexeme);
+						op_stack = push(op_stack, sym, SYM);
+						found = 1;
+						break;
+					}
+				}
+				if(! found) {
+					stack_free(op_stack);
+					stack_free(node_stack);
+					p->err = ecalloc(strlen(p->l->filename) + strlen(le->lexeme) + 21 + 1, sizeof(char));
+					sprintf(p->err, "%s: unknown function %s\n", p->l->filename, le->lexeme);
+					return -1;
+				}
+				found = 0;
 			}
 			break;
 		default:
