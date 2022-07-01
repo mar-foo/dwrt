@@ -29,6 +29,7 @@ static Node*	ast_cos(Node*);
 static Node*	ast_cosh(Node*);
 static Node*	ast_derive_func(Node*, char);
 static Node*	ast_derive_op(Node*, char);
+static Node*	ast_exp(Node*);
 static Node*	ast_frac(Node*, Node*);
 static Node*	ast_mul(Node*, Node*);
 static Node*	ast_sin(Node*);
@@ -108,6 +109,8 @@ ast_derive_func(Node *ast, char var)
 			       ast_mul(ast_alloc(num_alloc(-1)), ast_sin(ast_copy(arg))));
 	} else if(strcmp(ast->sym->content->func, "cosh") == 0) {
 		return ast_mul(ast_derive(arg, var), ast_sinh(ast_copy(arg)));
+	} else if(strcmp(ast->sym->content->func, "exp") == 0) {
+		return ast_mul(ast_derive(arg, var), ast_exp(ast_copy(arg)));
 	} else if(strcmp(ast->sym->content->func, "sin") == 0) {
 		return ast_mul(ast_derive(arg, var), ast_cos(ast_copy(arg)));
 	} else if(strcmp(ast->sym->content->func, "sinh") == 0) {
@@ -140,6 +143,23 @@ ast_derive_op(Node *ast, char var)
 				ast_mul(ast_copy(ast->right), ast_copy(ast->right)));
 	}
 	return NULL;
+}
+
+static Node*
+ast_exp(Node *x)
+{
+	Node *exp;
+	char *f;
+
+	if(x == NULL)
+		return NULL;
+
+	f = ecalloc(4, sizeof(char));
+	f = strcpy(f, "exp");
+	exp = ast_alloc(func_alloc(f));
+	ast_insert(exp, x);
+	return exp;
+
 }
 
 
