@@ -24,6 +24,226 @@
 
 #include "../derive.c"
 
+START_TEST(test_derive_op_frac)
+{
+	Node *ast, *diff;
+
+	ast = ast_frac(ast_alloc(num_alloc(1)), ast_alloc(var_alloc('x')));
+	diff = ast_derive(ast, 'x');
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_OP);
+	ck_assert(diff->sym->content->op == '/');
+
+	ck_assert(diff->left->sym->type == S_NUM);
+	ck_assert_double_eq(diff->left->sym->content->num, 1);
+	ck_assert(ast->left != diff->left);
+
+	ck_assert(diff->right->sym->type == S_OP);
+	ck_assert(diff->right->sym->content->op == '*');
+
+	ck_assert(is_same_var(diff->right->right->sym, 'x'));
+	ck_assert(is_same_var(diff->right->left->sym, 'x'));
+
+	ast_free(diff);
+	ast_free(ast);
+}
+END_TEST
+
+START_TEST(test_derive_op_mul)
+{
+	Node *ast, *diff;
+
+	ast = ast_mul(ast_alloc(var_alloc('x')), ast_alloc(num_alloc(5)));
+	diff = ast_derive(ast, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_NUM);
+	ck_assert_double_eq(diff->sym->content->num, 5);
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_op_sub)
+{
+	Node *ast, *diff;
+
+	ast = ast_sub(ast_alloc(var_alloc('x')), ast_alloc(num_alloc(5)));
+	diff = ast_derive(ast, 'x');
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_NUM);
+	ck_assert_double_eq(diff->sym->content->num, 1);
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_op_sum)
+{
+	Node *ast, *diff;
+
+	ast = ast_sub(ast_alloc(var_alloc('x')), ast_alloc(num_alloc(5)));
+	diff = ast_derive(ast, 'x');
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_NUM);
+	ck_assert_double_eq(diff->sym->content->num, 1);
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_func_cos)
+{
+	Node *ast, *diff;
+
+	ast = ast_cos(ast_alloc(var_alloc('x')));
+	diff = ast_derive(ast, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+
+	ck_assert(diff->sym->type == S_OP);
+	ck_assert(diff->sym->content->op == '*');
+
+	ck_assert(diff->left->sym->type == S_NUM);
+	ck_assert_double_eq(diff->left->sym->content->num, -1);
+
+	ck_assert(diff->right->sym->type == S_FUNC);
+	ck_assert_str_eq(diff->right->sym->content->func, "sin");
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
+
+START_TEST(test_derive_func_cosh)
+{
+	Node *ast, *diff;
+
+	ast = ast_cosh(ast_alloc(var_alloc('x')));
+	diff = ast_derive(ast, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_FUNC);
+	ck_assert_str_eq(diff->sym->content->func, "sinh");
+
+	ck_assert(diff->right->sym->type == S_VAR);
+	ck_assert(diff->right->sym->content->var == 'x');
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_func_sin)
+{
+	Node *ast, *diff;
+
+	ast = ast_sin(ast_alloc(var_alloc('x')));
+	diff = ast_derive(ast, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_FUNC);
+	ck_assert_str_eq(diff->sym->content->func, "cos");
+
+	ck_assert(diff->right->sym->type == S_VAR);
+	ck_assert(diff->right->sym->content->var == 'x');
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_func_sinh)
+{
+	Node *ast, *diff;
+
+	ast = ast_sinh(ast_alloc(var_alloc('x')));
+	diff = ast_derive(ast, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_FUNC);
+	ck_assert_str_eq(diff->sym->content->func, "cosh");
+
+	ck_assert(diff->right->sym->type == S_VAR);
+	ck_assert(diff->right->sym->content->var == 'x');
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_func_tan)
+{
+	Node *ast, *diff;
+
+	ast = ast_tan(ast_alloc(var_alloc('x')));
+	diff = ast_derive(ast, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_OP);
+	ck_assert(diff->sym->content->op == '+');
+
+	ck_assert(diff->left->sym->type == S_NUM);
+	ck_assert_double_eq(diff->left->sym->content->num, 1);
+
+	ck_assert(diff->right->sym->type == S_OP);
+	ck_assert(diff->right->sym->content->op == '*');
+
+	ck_assert(diff->right->right->sym->type == S_FUNC);
+	ck_assert_str_eq(diff->right->right->sym->content->func, "tan");
+
+	ck_assert(diff->right->right->right->sym->type == S_VAR);
+	ck_assert(diff->right->right->right->sym->content->op == 'x');
+
+	ck_assert(diff->right->left->sym->type == S_FUNC);
+	ck_assert_str_eq(diff->right->left->sym->content->func, "tan");
+
+	ck_assert(diff->right->left->right->sym->type == S_VAR);
+	ck_assert(diff->right->left->right->sym->content->op == 'x');
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_func_tanh)
+{
+	Node *ast, *diff;
+
+	ast = ast_tanh(ast_alloc(var_alloc('x')));
+	diff = ast_derive(ast, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_OP);
+	ck_assert(diff->sym->content->op == '-');
+
+	ck_assert(diff->right->sym->type == S_NUM);
+	ck_assert_double_eq(diff->right->sym->content->num, 1);
+
+	ck_assert(diff->left->sym->type == S_OP);
+	ck_assert(diff->left->sym->content->op == '*');
+
+	ck_assert(diff->left->right->sym->type == S_FUNC);
+	ck_assert_str_eq(diff->left->right->sym->content->func, "tanh");
+
+	ck_assert(diff->left->right->right->sym->type == S_VAR);
+	ck_assert(diff->left->right->right->sym->content->op == 'x');
+
+	ck_assert(diff->left->left->sym->type == S_FUNC);
+	ck_assert_str_eq(diff->left->left->sym->content->func, "tanh");
+
+	ck_assert(diff->left->left->right->sym->type == S_VAR);
+	ck_assert(diff->left->left->right->sym->content->op == 'x');
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
 START_TEST(test_ast_cos)
 {
 	Node *ast;
@@ -473,16 +693,28 @@ Suite*
 derive_suite()
 {
 	Suite *s;
-	TCase *tc_frac, *tc_func, *tc_mul, *tc_sub, *tc_sum, *tc_var;
+	TCase *tc_derive, *tc_frac, *tc_func, *tc_mul, *tc_sub, *tc_sum, *tc_var;
 
 	s = suite_create("derive");
 
+	tc_derive = tcase_create("derive");
 	tc_frac = tcase_create("frac");
 	tc_func = tcase_create("func");
 	tc_mul = tcase_create("mul");
 	tc_sub = tcase_create("sub");
 	tc_sum = tcase_create("sum");
 	tc_var = tcase_create("var");
+
+	tcase_add_test(tc_derive, test_derive_func_cos);
+	tcase_add_test(tc_derive, test_derive_func_cosh);
+	tcase_add_test(tc_derive, test_derive_func_sin);
+	tcase_add_test(tc_derive, test_derive_func_sinh);
+	tcase_add_test(tc_derive, test_derive_func_tan);
+	tcase_add_test(tc_derive, test_derive_func_tanh);
+	tcase_add_test(tc_derive, test_derive_op_sum);
+	tcase_add_test(tc_derive, test_derive_op_sub);
+	tcase_add_test(tc_derive, test_derive_op_mul);
+	tcase_add_test(tc_derive, test_derive_op_frac);
 
 	tcase_add_test(tc_frac, test_ast_frac_two_num);
 	tcase_add_test(tc_frac, test_ast_frac_left_is_zero);
@@ -520,6 +752,7 @@ derive_suite()
 	tcase_add_test(tc_var, test_is_same_var_not_var);
 	tcase_add_test(tc_var, test_is_same_var);
 
+	suite_add_tcase(s, tc_derive);
 	suite_add_tcase(s, tc_frac);
 	suite_add_tcase(s, tc_func);
 	suite_add_tcase(s, tc_mul);

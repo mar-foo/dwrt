@@ -35,6 +35,8 @@ static Node*	ast_sin(Node*);
 static Node*	ast_sinh(Node*);
 static Node*	ast_sum(Node*, Node*);
 static Node*	ast_sub(Node*, Node*);
+static Node*	ast_tan(Node*);
+static Node*	ast_tanh(Node*);
 static int	is_same_var(Symbol*, char);
 
 static Node*
@@ -111,12 +113,9 @@ ast_derive_func(Node *ast, char var)
 	} else if(strcmp(ast->sym->content->func, "sinh") == 0) {
 		return ast_mul(ast_derive(arg, var), ast_cosh(ast_copy(arg)));
 	} else if(strcmp(ast->sym->content->func, "tan") == 0) {
-		return ast_frac(ast_derive(arg, var),
-				ast_mul(ast_cos(ast_copy(arg)),
-					ast_cos(ast_copy(arg))));
+		return ast_sum(ast_alloc(num_alloc(1)), ast_mul(ast_tan(ast_copy(arg)), ast_tan(ast_copy(arg))));
 	} else if(strcmp(ast->sym->content->func, "tanh") == 0) {
-		return ast_frac(ast_derive(arg, var),
-				ast_mul(ast_cosh(ast_copy(arg)), ast_cosh(ast_copy(arg))));
+		return ast_sub(ast_mul(ast_tanh(ast_copy(arg)), ast_tanh(ast_copy(arg))), ast_alloc(num_alloc(1)));
 	}
 	return NULL;
 }
@@ -279,6 +278,38 @@ ast_sub(Node *x, Node *y)
 		ast_insert(ast_sub, x);
 		return ast_sub;
 	}
+}
+
+static Node*
+ast_tan(Node *x)
+{
+	Node *tan;
+	char *f;
+
+	if(x == NULL)
+	return x;
+
+	f = ecalloc(4, sizeof(char));
+	f = strcpy(f, "tan");
+	tan = ast_alloc(func_alloc(f));
+	ast_insert(tan, x);
+	return tan;
+}
+
+static Node*
+ast_tanh(Node *x)
+{
+	Node *tanh;
+	char *f;
+
+	if(x == NULL)
+	return x;
+
+	f = ecalloc(5, sizeof(char));
+	f = strcpy(f, "tanh");
+	tanh = ast_alloc(func_alloc(f));
+	ast_insert(tanh, x);
+	return tanh;
 }
 
 static int
