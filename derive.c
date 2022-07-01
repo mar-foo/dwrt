@@ -18,6 +18,7 @@
  *
  */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,6 +31,7 @@ static Node*	ast_cosh(Node*);
 static Node*	ast_derive_func(Node*, char);
 static Node*	ast_derive_op(Node*, char);
 static Node*	ast_exp(Node*);
+static Node*	ast_expt(Node*, Node*);
 static Node*	ast_frac(Node*, Node*);
 static Node*	ast_log(Node*);
 static Node*	ast_mul(Node*, Node*);
@@ -139,12 +141,24 @@ ast_derive_op(Node *ast, char var)
 	} else if(ast->sym->content->op == '*') {
 		/* d/dx x * y = (d/dx x) * y + (d/dx y) * x */
 		return ast_sum(ast_mul(ast_copy(ast->right), ast_derive(ast->left, var)),
-			       ast_mul(ast_copy(ast->left), ast_derive(ast->right, var)));
+		 ast_mul(ast_copy(ast->left), ast_derive(ast->right, var)));
 	} else if(ast->sym->content->op == '/') {
 		/* d/dx x / y = [(d/dx x) * y - (d/dx y) * x] / y ^ 2 */
 		return ast_frac(ast_sub(ast_mul(ast_copy(ast->right), ast_derive(ast->left, var)),
-					ast_mul(ast_copy(ast->left), ast_derive(ast->right, var))),
-				ast_mul(ast_copy(ast->right), ast_copy(ast->right)));
+			  ast_mul(ast_copy(ast->left), ast_derive(ast->right, var))),
+		  ast_mul(ast_copy(ast->right), ast_copy(ast->right)));
+	} else if(ast->sym->content->op == '^') {
+		if(is_num(ast->right->sym) && is_num(ast->left->sym)) {
+			/* d/dx n^m = 0 */
+			return ast_alloc(num_alloc(0));
+		} else if(is_num(ast->right->sym)) {
+			/* d/dx x ^ n = n * x ^ (n - 1) */
+			return ast_mul(ast_copy(ast->right),
+		  ast_expt(ast_copy(ast->left), ast_alloc(num_alloc(ast->right->sym->content->num - 1))));
+		} else {
+			/* d/dx x ^ f(x) = d/dx exp(f(x) * log(x)) */
+			return ast_derive(ast_exp(ast_mul(ast->right, ast_log(ast->left))), var);
+		}
 	}
 	return NULL;
 }
@@ -163,7 +177,34 @@ ast_exp(Node *x)
 	exp = ast_alloc(func_alloc(f));
 	ast_insert(exp, x);
 	return exp;
+}
 
+static Node*
+ast_expt(Node *x, Node *y)
+{
+	Node *expt;
+	if(x == NULL || y == NULL)
+		return NULL;
+
+	if(num_equal(x->sym, 1)
+		|| num_equal(y->sym, 0)) {
+		ast_free(x);
+		ast_free(y);
+		return ast_alloc(num_alloc(1));
+	} else if(num_equal(y->sym, 1)) {
+		ast_free(y);
+		return x;
+	} else if(is_num(x->sym) && is_num(y->sym)) {
+		expt = ast_alloc(num_alloc(pow(x->sym->content->num, y->sym->content->num)));
+		ast_free(x);
+		ast_free(y);
+		return expt;
+	} else {
+		expt = ast_alloc(operator_alloc('^'));
+		ast_insert(expt, y);
+		ast_insert(expt, x);
+		return expt;
+	}
 }
 
 

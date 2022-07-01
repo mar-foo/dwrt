@@ -24,6 +24,65 @@
 
 #include "../derive.c"
 
+START_TEST(test_derive_op_expt_var_to_num)
+{
+	Node *expt, *diff;
+
+	expt = ast_expt(ast_alloc(var_alloc('x')), ast_alloc(num_alloc(7)));
+	diff = ast_derive(expt, 'x');
+	ck_assert_ptr_nonnull(diff);
+
+	ck_assert_int_eq(diff->sym->type, S_OP);
+	ck_assert(diff->sym->content->op == '*');
+
+	ck_assert(is_num(diff->left->sym));
+	ck_assert_double_eq(diff->left->sym->content->num, 7);
+
+	ck_assert(is_operator(diff->right->sym));
+	ck_assert(diff->right->sym->content->op == '^');
+
+	ck_assert(is_same_var(diff->right->left->sym, 'x'));
+
+	ck_assert(is_num(diff->right->right->sym));
+	ck_assert_double_eq(diff->right->right->sym->content->num, 6);
+
+	ast_free(expt);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_op_expt_two_num)
+{
+	Node *expt, *diff;
+
+	expt = ast_alloc(operator_alloc('^'));
+	ast_insert(expt, ast_alloc(num_alloc(5)));
+	ast_insert(expt, ast_alloc(num_alloc(2)));
+
+	diff = ast_derive(expt, 'x');
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(is_num(diff->sym));
+	ck_assert_double_eq(diff->sym->content->num, 0);
+
+	ast_free(expt);
+	ast_free(diff);
+}
+END_TEST
+
+START_TEST(test_derive_op_expt_var_to_func)
+{
+	Node *expt, *diff;
+
+	expt = ast_expt(ast_alloc(var_alloc('x')), ast_alloc(var_alloc('x')));
+	diff = ast_derive(expt, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+
+	ast_free(expt);
+	ast_free(diff);
+}
+END_TEST
+
 START_TEST(test_derive_op_frac)
 {
 	Node *ast, *diff;
@@ -363,6 +422,61 @@ START_TEST(test_ast_exp_null)
 
 	ast = ast_exp(NULL);
 	ck_assert_ptr_null(ast);
+}
+END_TEST
+
+START_TEST(test_ast_expt_left_is_one)
+{
+	Node *expt;
+
+	expt = ast_expt(ast_alloc(num_alloc(1)), ast_alloc(var_alloc('x')));
+	ck_assert_ptr_nonnull(expt);
+	ck_assert(is_num(expt->sym));
+	ck_assert_double_eq(expt->sym->content->num, 1);
+
+	ast_free(expt);
+}
+END_TEST
+
+START_TEST(test_ast_expt_right_is_zero)
+{
+	Node *expt;
+
+	expt = ast_expt(ast_alloc(var_alloc('x')), ast_alloc(num_alloc(0)));
+	ck_assert_ptr_nonnull(expt);
+	ck_assert(is_num(expt->sym));
+	ck_assert_double_eq(expt->sym->content->num, 1);
+
+	ast_free(expt);
+}
+END_TEST
+
+START_TEST(test_ast_expt_two_num)
+{
+	Node *expt;
+
+	expt = ast_expt(ast_alloc(num_alloc(5)), ast_alloc(num_alloc(2)));
+	ck_assert_ptr_nonnull(expt);
+	ck_assert(is_num(expt->sym));
+	ck_assert_double_eq(expt->sym->content->num, 25);
+
+	ast_free(expt);
+}
+END_TEST
+
+START_TEST(test_ast_expt)
+{
+	Node *expt;
+
+	expt = ast_expt(ast_alloc(var_alloc('x')), ast_alloc(num_alloc(5)));
+	ck_assert_ptr_nonnull(expt);
+	ck_assert(is_operator(expt->sym));
+	ck_assert(expt->sym->content->op == '^');
+	ck_assert(is_same_var(expt->left->sym, 'x'));
+	ck_assert(is_num(expt->right->sym));
+	ck_assert_double_eq(expt->right->sym->content->num, 5);
+
+	ast_free(expt);
 }
 END_TEST
 
@@ -788,11 +902,12 @@ Suite*
 derive_suite()
 {
 	Suite *s;
-	TCase *tc_derive, *tc_frac, *tc_func, *tc_mul, *tc_sub, *tc_sum, *tc_var;
+	TCase *tc_derive, *tc_expt, *tc_frac, *tc_func, *tc_mul, *tc_sub, *tc_sum, *tc_var;
 
 	s = suite_create("derive");
 
 	tc_derive = tcase_create("derive");
+	tc_expt = tcase_create("expt");
 	tc_frac = tcase_create("frac");
 	tc_func = tcase_create("func");
 	tc_mul = tcase_create("mul");
@@ -812,6 +927,14 @@ derive_suite()
 	tcase_add_test(tc_derive, test_derive_op_sub);
 	tcase_add_test(tc_derive, test_derive_op_mul);
 	tcase_add_test(tc_derive, test_derive_op_frac);
+	tcase_add_test(tc_derive, test_derive_op_expt_two_num);
+	tcase_add_test(tc_derive, test_derive_op_expt_var_to_num);
+	tcase_add_test(tc_derive, test_derive_op_expt_var_to_func);
+
+	tcase_add_test(tc_expt, test_ast_expt_two_num);
+	tcase_add_test(tc_expt, test_ast_expt_left_is_one);
+	tcase_add_test(tc_expt, test_ast_expt_right_is_zero);
+	tcase_add_test(tc_expt, test_ast_expt);
 
 	tcase_add_test(tc_frac, test_ast_frac_two_num);
 	tcase_add_test(tc_frac, test_ast_frac_left_is_zero);
@@ -854,6 +977,7 @@ derive_suite()
 	tcase_add_test(tc_var, test_is_same_var);
 
 	suite_add_tcase(s, tc_derive);
+	suite_add_tcase(s, tc_expt);
 	suite_add_tcase(s, tc_frac);
 	suite_add_tcase(s, tc_func);
 	suite_add_tcase(s, tc_mul);

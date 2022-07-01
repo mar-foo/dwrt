@@ -152,6 +152,12 @@ ast_to_latex(Node *ast)
 			ast_to_latex(ast->right);
 			printf("}");
 			return;
+		case '^':
+			ast_to_latex(ast->left);
+			printf("^{");
+			ast_to_latex(ast->right);
+			printf("}");
+			return;
 		}
 		break;
 	case S_LPAREN:
@@ -295,7 +301,9 @@ symbol_copy(Symbol *src)
 	dest = NULL;
 	switch(src->type) {
 	case S_FUNC:
-		dest = func_alloc(src->content->func);
+		func = ecalloc(MAX_FUNC_LENGTH, sizeof(char));
+		func = strcpy(func, src->content->func);
+		dest = func_alloc(func);
 		break;
 	case S_OP:
 		dest = operator_alloc(src->content->op);

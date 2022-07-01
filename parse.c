@@ -412,6 +412,8 @@ precedence(Symbol *s)
 		case '*':
 		case '/':
 			return 1;
+		case '^':
+			return 2;
 		}
 		break;
 	case S_FUNC:
