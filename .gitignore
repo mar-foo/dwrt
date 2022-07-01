@@ -43,6 +43,15 @@ test/test_util
 # ctags
 TAGS
 
+# ccls
+.ccls-cache
+
+# coverage
+*.gcno
+*.gcda
+*.gcov
+lcov
+
 # Debug files
 *.dSYM/
 *.su
