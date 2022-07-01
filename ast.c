@@ -122,6 +122,22 @@ ast_to_latex(Node *ast)
 		switch(ast->sym->content->op) {
 		case '+':
 		case '-':
+			if(is_num(ast->left->sym) || is_function(ast->left->sym)) {
+				ast_to_latex(ast->left);
+			} else {
+				printf("(");
+				ast_to_latex(ast->left);
+				printf(")");
+			}
+			printf(" %c ", ast->sym->content->op);
+			if(is_num(ast->right->sym) || is_function(ast->left->sym)) {
+				ast_to_latex(ast->right);
+			} else {
+				printf("(");
+				ast_to_latex(ast->right);
+				printf(")");
+			}
+			return;
 		case '*':
 			ast_to_latex(ast->left);
 			printf(" %c ", ast->sym->content->op);
