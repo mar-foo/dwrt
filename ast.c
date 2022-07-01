@@ -30,6 +30,8 @@ static void	ast_print_rec(Node*, int);
 static void	print_tabs(int);
 static Symbol*	symbol_copy(Symbol*);
 
+#define MAX_FUNC_LENGTH 5
+
 Node*
 ast_alloc(Symbol *sym)
 {
@@ -284,6 +286,7 @@ symbol_free(Symbol *sym)
 static Symbol*
 symbol_copy(Symbol *src)
 {
+	char *func;
 	Symbol *dest;
 
 	if(src == NULL)
