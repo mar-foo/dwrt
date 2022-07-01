@@ -157,6 +157,28 @@ START_TEST(test_derive_func_exp)
 }
 END_TEST
 
+START_TEST(test_derive_func_log)
+{
+	Node *ast, *diff;
+
+	ast = ast_log(ast_alloc(var_alloc('x')));
+	diff = ast_derive(ast, 'x');
+
+	ck_assert_ptr_nonnull(diff);
+	ck_assert(diff->sym->type == S_OP);
+	ck_assert(diff->sym->content->op == '/');
+
+	ck_assert(is_num(diff->left->sym));
+	ck_assert(num_equal(diff->left->sym, 1));
+
+	ck_assert(diff->right->sym->type == S_VAR);
+	ck_assert(diff->right->sym->content->var == 'x');
+
+	ast_free(ast);
+	ast_free(diff);
+}
+END_TEST
+
 START_TEST(test_derive_func_sin)
 {
 	Node *ast, *diff;
@@ -340,6 +362,33 @@ START_TEST(test_ast_exp_null)
 	Node *ast;
 
 	ast = ast_exp(NULL);
+	ck_assert_ptr_null(ast);
+}
+END_TEST
+
+START_TEST(test_ast_log)
+{
+	Node *ast;
+
+	ast = ast_log(ast_alloc(var_alloc('y')));
+	ck_assert_ptr_nonnull(ast);
+	ck_assert_ptr_null(ast->left);
+	ck_assert_ptr_nonnull(ast->right);
+
+	ck_assert_str_eq(ast->sym->content->func, "log");
+	ck_assert(ast->right->sym->type == S_VAR);
+	ck_assert(ast->right->sym->content->var == 'y');
+
+	ast_free(ast);
+
+}
+END_TEST
+
+START_TEST(test_ast_log_null)
+{
+	Node *ast;
+
+	ast = ast_log(NULL);
 	ck_assert_ptr_null(ast);
 }
 END_TEST
@@ -754,6 +803,7 @@ derive_suite()
 	tcase_add_test(tc_derive, test_derive_func_cos);
 	tcase_add_test(tc_derive, test_derive_func_cosh);
 	tcase_add_test(tc_derive, test_derive_func_exp);
+	tcase_add_test(tc_derive, test_derive_func_log);
 	tcase_add_test(tc_derive, test_derive_func_sin);
 	tcase_add_test(tc_derive, test_derive_func_sinh);
 	tcase_add_test(tc_derive, test_derive_func_tan);
@@ -775,6 +825,8 @@ derive_suite()
 	tcase_add_test(tc_func, test_ast_cosh_null);
 	tcase_add_test(tc_func, test_ast_exp);
 	tcase_add_test(tc_func, test_ast_exp_null);
+	tcase_add_test(tc_func, test_ast_log);
+	tcase_add_test(tc_func, test_ast_log_null);
 	tcase_add_test(tc_func, test_ast_sin);
 	tcase_add_test(tc_func, test_ast_sin_null);
 	tcase_add_test(tc_func, test_ast_sinh);

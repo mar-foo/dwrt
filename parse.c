@@ -26,7 +26,7 @@
 #include "dat.h"
 #include "fns.h"
 
-#define KNOWN_FUNCS 7
+#define KNOWN_FUNCS 8
 #define LEXEME_MINSZ 10
 
 enum stack_type {
@@ -50,7 +50,7 @@ static Stack*	stack_alloc(void*, enum stack_type);
 static void	stack_free(Stack*);
 static int	stack_len(Stack*);
 
-static char *known_funcs[] = {"cos", "cosh", "exp", "sin", "sinh", "tan", "tanh"};
+static char *known_funcs[] = {"cos", "cosh", "exp", "log", "sin", "sinh", "tan", "tanh"};
 
 static char
 l_getc(Lexer *l)
