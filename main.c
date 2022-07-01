@@ -47,7 +47,7 @@ main(int argc, char *argv[])
 	diff = NULL;
 
 	if(parse(p) < 0) {
-		fprintf(stderr, p->err);
+		fprintf(stderr, "%s", p->err);
 		p_free(p);
 		exit(1);
 	}
