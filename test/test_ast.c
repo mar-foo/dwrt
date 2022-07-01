@@ -147,7 +147,8 @@ START_TEST(test_ast_copy_deep)
 
 	src = ast_alloc(operator_alloc('+'));
 	src->left = ast_alloc(num_alloc(5));
-	src->right = ast_alloc(num_alloc(6));
+	src->right = ast_alloc(func_alloc("sin"));
+	src->right->right = ast_alloc(num_alloc(6));
 
 	dest = ast_copy(src);
 	ck_assert(is_operator(dest->sym));
@@ -159,10 +160,14 @@ START_TEST(test_ast_copy_deep)
 	ck_assert(dest->right != src->right);
 	ck_assert(dest->left != src->left);
 
-	ck_assert(is_num(dest->right->sym));
-	ck_assert(num_equal(dest->right->sym, 6));
 	ck_assert(is_num(dest->left->sym));
 	ck_assert(num_equal(dest->left->sym, 5));
+
+	ck_assert(is_function(dest->right->sym));
+	ck_assert_str_eq(dest->right->sym->content->func, "sin");
+
+	ck_assert_ptr_null(dest->right->left);
+	ck_assert(num_equal(dest->right->right->sym, 6));
 
 	ast_free(dest);
 	ast_free(src);
