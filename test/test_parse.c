@@ -322,6 +322,17 @@ START_TEST(test_parse_unbalanced_right_parenthesis)
 }
 END_TEST
 
+START_TEST(test_parse_unknown_func)
+{
+	Parser *p;
+	p = p_init("files/test_parse_unknown_func.txt");
+
+	ck_assert(parse(p) < 0);
+	ck_assert_str_eq(p->err, "files/test_parse_unknown_func.txt: unknown function stupidfunc\n");
+	p_free(p);
+}
+END_TEST
+
 /* START_TEST(test_parse_function_application) */
 /* { */
 /* } */
@@ -359,6 +370,7 @@ parse_suite(void)
 	tcase_add_test(tc_parse, test_parse_parenthesized);
 	tcase_add_test(tc_parse, test_parse_unbalanced_left_parenthesis);
 	tcase_add_test(tc_parse, test_parse_unbalanced_right_parenthesis);
+	tcase_add_test(tc_parse, test_parse_unknown_func);
 
 	suite_add_tcase(s, tc_lex);
 	suite_add_tcase(s, tc_parse);
