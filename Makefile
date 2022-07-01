@@ -37,6 +37,7 @@ $(TARG): main.c $(OBJ)
 
 clean:
 	rm -f $(TARG) *.o *.gcov *.gcda *.gcno
+	rm -rf lcov/*
 	$(MAKE) -C test clean
 
 tags:
