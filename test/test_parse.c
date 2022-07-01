@@ -263,7 +263,7 @@ START_TEST(test_parse_non_parenthesized)
 {
 	Parser *p;
 	p = p_init("files/test_parse_non_parenthesized.txt");
-	ck_assert_msg(parse(p) == 0, p->err);
+	ck_assert_msg(parse(p) == 0, "%s", p->err);
 
 	ck_assert(p->ast->sym->content->op == '/');
 	ck_assert_str_eq(p->ast->right->sym->content->func, "sin");
@@ -284,7 +284,7 @@ START_TEST(test_parse_parenthesized)
 	Parser *p;
 
 	p = p_init("files/test_parse_parenthesized.txt");
-	ck_assert_msg(parse(p) == 0, p->err);
+	ck_assert_msg(parse(p) == 0, "%s", p->err);
 
 	ck_assert(p->ast->sym->content->op == '/');
 	ck_assert_str_eq(p->ast->right->sym->content->func, "sin");
