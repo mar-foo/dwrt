@@ -98,10 +98,10 @@ START_TEST(test_derive_op_frac)
 	ck_assert(ast->left != diff->left);
 
 	ck_assert(diff->right->sym->type == S_OP);
-	ck_assert(diff->right->sym->content->op == '*');
+	ck_assert(diff->right->sym->content->op == '^');
 
-	ck_assert(is_same_var(diff->right->right->sym, 'x'));
 	ck_assert(is_same_var(diff->right->left->sym, 'x'));
+	ck_assert(num_equal(diff->right->right->sym, 2));
 
 	ast_free(diff);
 	ast_free(ast);
@@ -291,19 +291,15 @@ START_TEST(test_derive_func_tan)
 	ck_assert_double_eq(diff->left->sym->content->num, 1);
 
 	ck_assert(diff->right->sym->type == S_OP);
-	ck_assert(diff->right->sym->content->op == '*');
-
-	ck_assert(diff->right->right->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->right->right->sym->content->func, "tan");
-
-	ck_assert(diff->right->right->right->sym->type == S_VAR);
-	ck_assert(diff->right->right->right->sym->content->op == 'x');
+	ck_assert(diff->right->sym->content->op == '^');
 
 	ck_assert(diff->right->left->sym->type == S_FUNC);
 	ck_assert_str_eq(diff->right->left->sym->content->func, "tan");
 
 	ck_assert(diff->right->left->right->sym->type == S_VAR);
 	ck_assert(diff->right->left->right->sym->content->op == 'x');
+
+	ck_assert(num_equal(diff->right->right->sym, 2));
 
 	ast_free(ast);
 	ast_free(diff);
@@ -325,13 +321,9 @@ START_TEST(test_derive_func_tanh)
 	ck_assert_double_eq(diff->right->sym->content->num, 1);
 
 	ck_assert(diff->left->sym->type == S_OP);
-	ck_assert(diff->left->sym->content->op == '*');
+	ck_assert(diff->left->sym->content->op == '^');
 
-	ck_assert(diff->left->right->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->left->right->sym->content->func, "tanh");
-
-	ck_assert(diff->left->right->right->sym->type == S_VAR);
-	ck_assert(diff->left->right->right->sym->content->op == 'x');
+	ck_assert(num_equal(diff->left->right->sym, 2));
 
 	ck_assert(diff->left->left->sym->type == S_FUNC);
 	ck_assert_str_eq(diff->left->left->sym->content->func, "tanh");

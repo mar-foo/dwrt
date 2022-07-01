@@ -122,9 +122,9 @@ ast_derive_func(Node *ast, char var)
 	} else if(strcmp(ast->sym->content->func, "sinh") == 0) {
 		return ast_mul(ast_derive(arg, var), ast_cosh(ast_copy(arg)));
 	} else if(strcmp(ast->sym->content->func, "tan") == 0) {
-		return ast_sum(ast_alloc(num_alloc(1)), ast_mul(ast_tan(ast_copy(arg)), ast_tan(ast_copy(arg))));
+		return ast_sum(ast_alloc(num_alloc(1)), ast_expt(ast_tan(ast_copy(arg)), ast_alloc(num_alloc(2))));
 	} else if(strcmp(ast->sym->content->func, "tanh") == 0) {
-		return ast_sub(ast_mul(ast_tanh(ast_copy(arg)), ast_tanh(ast_copy(arg))), ast_alloc(num_alloc(1)));
+		return ast_sub(ast_expt(ast_tanh(ast_copy(arg)), ast_alloc(num_alloc(2))), ast_alloc(num_alloc(1)));
 	}
 	return NULL;
 }
@@ -146,7 +146,7 @@ ast_derive_op(Node *ast, char var)
 		/* d/dx x / y = [(d/dx x) * y - (d/dx y) * x] / y ^ 2 */
 		return ast_frac(ast_sub(ast_mul(ast_copy(ast->right), ast_derive(ast->left, var)),
 			  ast_mul(ast_copy(ast->left), ast_derive(ast->right, var))),
-		  ast_mul(ast_copy(ast->right), ast_copy(ast->right)));
+		  ast_expt(ast_copy(ast->right), ast_alloc(num_alloc(2))));
 	} else if(ast->sym->content->op == '^') {
 		if(is_num(ast->right->sym) && is_num(ast->left->sym)) {
 			/* d/dx n^m = 0 */
