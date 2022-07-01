@@ -80,6 +80,8 @@ ast_cosh(Node *x)
 Node*
 ast_derive(Node *ast, char var)
 {
+	if(ast == NULL)
+		return NULL;
 	switch(ast->sym->type) {
 	case S_VAR:
 		if(is_same_var(ast->sym, var))
@@ -132,6 +134,8 @@ ast_derive_func(Node *ast, char var)
 static Node*
 ast_derive_op(Node *ast, char var)
 {
+	Node *diff, *expr;
+
 	if(ast->sym->content->op == '+') {
 		/* d/dx x + y = (d/dx x) + (d/dx y) */
 		return ast_sum(ast_derive(ast->left, var), ast_derive(ast->right, var));;
@@ -157,7 +161,11 @@ ast_derive_op(Node *ast, char var)
 		  ast_expt(ast_copy(ast->left), ast_alloc(num_alloc(ast->right->sym->content->num - 1))));
 		} else {
 			/* d/dx x ^ f(x) = d/dx exp(f(x) * log(x)) */
-			return ast_derive(ast_exp(ast_mul(ast->right, ast_log(ast->left))), var);
+			/* Workaround not to lose memory */
+			expr = ast_exp(ast_mul(ast_copy(ast->right), ast_log(ast_copy(ast->left))));
+			diff = ast_derive(expr, var);
+			ast_free(expr);
+			return diff;
 		}
 	}
 	return NULL;
@@ -258,6 +266,9 @@ static Node*
 ast_mul(Node *x, Node *y)
 {
 	Node *ast_mul;
+
+	if(x == NULL || y == NULL)
+		return NULL;
 
 	if(is_num(x->sym) && num_equal(x->sym, 1)) {
 		ast_free(x);
