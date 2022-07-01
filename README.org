@@ -8,7 +8,7 @@ Symbolic differentiation of mathematical expressions
 - Parses mathematical expressions
 - Differentiates them symbolically
 
-** TODO
+** Todo
 
 - Latex output
 - =eqn(1)= output
