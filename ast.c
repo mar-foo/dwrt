@@ -27,6 +27,7 @@
 #include "fns.h"
 
 static void 	ast_print_rec(Node*, Symbol*);
+static void 	ast_to_latex_rec(Node*, Symbol*);
 static Symbol*	symbol_copy(Symbol*);
 
 #define MAX_FUNC_LENGTH 5
@@ -123,12 +124,20 @@ ast_print_rec(Node *node, Symbol *previous)
 void
 ast_to_latex(Node *ast)
 {
+	ast_to_latex_rec(ast, NULL);
+}
+
+static void
+ast_to_latex_rec(Node *ast, Symbol *previous)
+{
+	if(ast == NULL) return;
+
 	switch(ast->sym->type) {
 	case S_VAR:
-		printf("%c", ast->sym->content->op);
+		printf("%c", ast->sym->content->var);
 		return;
 	case S_NUM:
-		printf("%f", ast->sym->content->num);
+		printf("%.2f", ast->sym->content->num);
 		return;
 	case S_FUNC:
 		printf("\\%s\\left(", ast->sym->content->func);
@@ -136,50 +145,34 @@ ast_to_latex(Node *ast)
 		printf("\\right)");
 		return;
 	case S_OP:
+		if(precedence(previous) > precedence(ast->sym))
+				printf("\\left(");
+
 		switch(ast->sym->content->op) {
-		case '+':
-		case '-':
-			if(is_num(ast->left->sym) || is_function(ast->left->sym)) {
-				ast_to_latex(ast->left);
-			} else {
-				printf("(");
-				ast_to_latex(ast->left);
-				printf(")");
-			}
-			printf(" %c ", ast->sym->content->op);
-			if(is_num(ast->right->sym) || is_function(ast->left->sym)) {
-				ast_to_latex(ast->right);
-			} else {
-				printf("(");
-				ast_to_latex(ast->right);
-				printf(")");
-			}
-			return;
-		case '*':
-			ast_to_latex(ast->left);
-			printf(" %c ", ast->sym->content->op);
-			ast_to_latex(ast->right);
-			return;
 		case '/':
 			printf("\\frac{");
 			ast_to_latex(ast->left);
 			printf("}{");
 			ast_to_latex(ast->right);
 			printf("}");
-			return;
+			break;
 		case '^':
 			ast_to_latex(ast->left);
 			printf("^{");
 			ast_to_latex(ast->right);
 			printf("}");
-			return;
+			break;
+		default:
+			ast_to_latex(ast->left);
+			printf("%c", ast->sym->content->op);
+			ast_to_latex(ast->right);
+			break;
 		}
+
+		if(precedence(previous) > precedence(ast->sym))
+				printf("\\left(");
 		break;
-	case S_LPAREN:
-		printf("\\left(");
-		return;
-	case S_RPAREN:
-		printf("\\right)");
+	default:
 		return;
 	}
 }
