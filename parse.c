@@ -73,17 +73,26 @@ l_init(char *filename)
 	Lexer *l;
 
 	l = emalloc(sizeof(Lexer));
-	l->filename = filename;
+
+	if(filename == NULL) {
+		l->filename = ecalloc(5 + 1, sizeof(char));
+		l->filename = strcpy(l->filename, "stdin");
+
+		f = stdin;
+	} else {
+		l->filename = filename;
+		if((f = fopen(filename, "r")) == NULL) {
+			free(l);
+			return NULL;
+		}
+	}
+
 	l->err = NULL;
 	l->state = LS_WS;
-
-	if((f = fopen(filename, "r")) == NULL) {
-		free(l);
-		return NULL;
-	}
 	l->pos = l->data = readall(f);
 
-	fclose(f);
+	if(filename == NULL) fclose(f);
+
 	return l;
 }
 
