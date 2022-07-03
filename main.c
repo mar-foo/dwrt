@@ -30,7 +30,7 @@ static void	usage(char*);
 static void
 usage(char *arg0)
 {
-	fprintf(stderr, "usage: %s variable\n", arg0);
+	fprintf(stderr, "usage: %s [-l] variable\n", arg0);
 }
 
 int
