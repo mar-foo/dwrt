@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -Werror -pedantic -ansi
+CFLAGS = -Wall -Wextra -Werror -pedantic -ansi -D_POSIX_C_SOURCE=200809L
 LDFLAGS = -lm
 TARG = derive
 OBJ = parse.o util.o ast.o derive.o

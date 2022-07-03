@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "dat.h"
 #include "fns.h"
@@ -35,12 +36,19 @@ usage(char *arg0)
 int
 main(int argc, char *argv[])
 {
+	int lflag, opt;
 	Parser *p;
 	Node *diff;
 
-	if(argc != 2) {
-		usage(argv[0]);
-		exit(1);
+	opterr = lflag = 0;
+	while((opt = getopt(argc, argv, "l")) != -1) {
+		switch(opt) {
+		case 'l':
+			lflag = 1;
+			break;
+		default:
+			usage(argv[0]);
+		}
 	}
 
 	p = p_init(NULL);
@@ -52,8 +60,12 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	diff = ast_derive(p->ast, argv[1][0]);
-	ast_print(diff);
+	diff = ast_derive(p->ast, argv[optind][0]);
+	if(lflag)
+		ast_to_latex(diff);
+	else
+		ast_print(diff);
+
 	printf("\n");
 	ast_free(diff);
 	p_free(p);
