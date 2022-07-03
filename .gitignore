@@ -35,8 +35,9 @@
 *.i*86
 *.x86_64
 *.hex
-derive
+dwrt
 test/test_ast
+test/test_dwrt
 test/test_parse
 test/test_util
 

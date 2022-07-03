@@ -1,7 +1,7 @@
 /*
  * Copyright ©️ 2022 Mario Forzanini <mf@marioforzanini.com>
  *
- * This file is part of derive.
+ * This file is part of dwrt.
  *
  * Derive is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -14,13 +14,13 @@
  * for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with derive. If not, see <https://www.gnu.org/licenses/>.
+ * along with dwrt. If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
 Node*	ast_alloc(Symbol*);
 Node*	ast_copy(Node*);
-Node*	ast_derive(Node*, char);
+Node*	ast_dwrt(Node*, char);
 void	ast_free(Node*);
 void 	ast_insert(Node*, Node*);
 void	ast_print(Node*);

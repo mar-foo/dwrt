@@ -1,7 +1,7 @@
 CFLAGS = -Wall -Wextra -Werror -pedantic -ansi -D_POSIX_C_SOURCE=200809L
 LDFLAGS = -lm
-TARG = derive
-OBJ = parse.o util.o ast.o derive.o
+TARG = dwrt
+OBJ = parse.o util.o ast.o dwrt.o
 SRC = $(OBJ:%.o=%.c)
 PREFIX = /usr/local
 
@@ -19,7 +19,7 @@ all: $(TARG)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -c $^
 
 cov: $(TARG)
-	@test -f "derive.gcda" || echo "Run make COV=1 to generate coverage information"
+	@test -f "dwrt.gcda" || echo "Run make COV=1 to generate coverage information"
 	@test -d lcov || mkdir lcov
 	gcov $(SRC) $(TARG)
 	lcov -c -d . -o lcov/lcov.info

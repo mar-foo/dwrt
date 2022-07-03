@@ -15,8 +15,8 @@ To install this program you need a working C compiler and a posix compatible
 system (not Windows). To install it clone the git repository and run =make=.
 
 #+begin_src sh
-$ git clone https://github.com/mar-foo/derive
-$ cd derive
+$ git clone https://github.com/mar-foo/dwrt
+$ cd dwrt
 $ make
 $ sudo make install
 #+end_src
@@ -31,15 +31,15 @@ Once installed, running the program without any option yields a simple help
 message:
 
 #+begin_src sh
-$ derive
-usage: derive [-l] variable
+$ dwrt
+usage: dwrt [-l] variable
 #+end_src
 
 So if you want to differentiate with respect to variable =x=, you should invoke
-=derive= with 'x' as an argument:
+=dwrt= with 'x' as an argument:
 
 #+begin_src sh
-$ derive x
+$ dwrt x
 sin(x)
 ^Dcos(x)
 #+end_src
@@ -51,7 +51,7 @@ file) character.
 To avoid having to do this you can also:
 
 #+begin_src sh
-$ echo "sin(x)" | derive x
+$ echo "sin(x)" | dwrt x
 #+end_src
 
 ** Latex output
@@ -60,7 +60,7 @@ The optional switch =-l= instructs the program to produce its output in latex
 format:
 
 #+begin_src sh
-$ echo "sin(x)" | derive -l x
+$ echo "sin(x)" | dwrt -l x
 \cos\left(x\right)
 #+end_src
 

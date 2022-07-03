@@ -1,7 +1,7 @@
 /*
  * Copyright ©️ 2022 Mario Forzanini <mf@marioforzanini.com>
  *
- * This file is part of derive.
+ * This file is part of dwrt.
  *
  * Derive is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -14,7 +14,7 @@
  * for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with derive. If not, see <https://www.gnu.org/licenses/>.
+ * along with dwrt. If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	diff = ast_derive(p->ast, argv[optind][0]);
+	diff = ast_dwrt(p->ast, argv[optind][0]);
 	if(lflag)
 		ast_to_latex(diff);
 	else
