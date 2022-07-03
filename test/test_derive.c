@@ -94,7 +94,7 @@ START_TEST(test_derive_op_frac)
 	ck_assert(diff->sym->content->op == '/');
 
 	ck_assert(diff->left->sym->type == S_NUM);
-	ck_assert_double_eq(diff->left->sym->content->num, 1);
+	ck_assert_double_eq(diff->left->sym->content->num, -1);
 	ck_assert(ast->left != diff->left);
 
 	ck_assert(diff->right->sym->type == S_OP);
@@ -730,11 +730,15 @@ START_TEST(test_ast_sub_left_is_zero)
 
 	ast = ast_sub(ast_alloc(num_alloc(0)), ast_alloc(var_alloc('x')));
 	ck_assert_ptr_nonnull(ast);
-	ck_assert_ptr_null(ast->right);
-	ck_assert_ptr_null(ast->left);
 
-	ck_assert(ast->sym->type == S_VAR);
-	ck_assert(ast->sym->content->var == 'x');
+	ck_assert(is_operator(ast->sym));
+	ck_assert(ast->sym->content->op == '*');
+
+	ck_assert(is_num(ast->left->sym));
+	ck_assert(num_equal(ast->left->sym, -1));
+
+	ck_assert(ast->right->sym->type == S_VAR);
+	ck_assert(ast->right->sym->content->var == 'x');
 
 	ast_free(ast);
 }
