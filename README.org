@@ -60,7 +60,7 @@ The optional switch =-l= instructs the program to produce its output in latex
 format:
 
 #+begin_src sh
-$ echo "sin(x)" | derive x
+$ echo "sin(x)" | derive -l x
 \cos\left(x\right)
 #+end_src
 
