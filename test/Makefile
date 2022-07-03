@@ -10,11 +10,11 @@ all: $(TESTS)
 test_util: test_util.c ../util.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
-test_ast: test_ast.c ../ast.o ../util.o
+test_ast: test_ast.c ../ast.o ../util.o ../parse.o
 
 test_parse: test_parse.c ../parse.o ../util.o ../ast.o
 
-test_derive: test_derive.c ../ast.o ../util.o
+test_derive: test_derive.c ../ast.o ../util.o ../parse.o
 
 test: $(TESTS)
 	for t in $(TESTS); do ./$$t ; done
