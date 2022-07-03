@@ -3,12 +3,91 @@
 
 Symbolic differentiation of mathematical expressions
 
-** Features
+* Features
 
 - Parses mathematical expressions
 - Differentiates them symbolically
+- Can print resulting derivative in latex format
 
-** Todo
+* Installation
 
-- Latex output
+To install this program you need a working C compiler and a posix compatible
+system (not Windows). To install it clone the git repository and run =make=.
+
+#+begin_src sh
+$ git clone https://github.com/mar-foo/derive
+$ cd derive
+$ make
+$ sudo make install
+#+end_src
+
+The last command installs the binary in /usr/local/bin, make sure you add this
+directory to your =$PATH= to be able to find the binary. If you don't know
+what this means or how to do it, just look up 'PATH variable linux' on the web.
+
+* Usage
+
+Once installed, running the program without any option yields a simple help
+message:
+
+#+begin_src sh
+$ derive
+usage: derive [-l] variable
+#+end_src
+
+So if you want to differentiate with respect to variable =x=, you should invoke
+=derive= with 'x' as an argument:
+
+#+begin_src sh
+$ derive x
+sin(x)
+^Dcos(x)
+#+end_src
+
+Where =^D= indicates that the user pressed =Control= and the letter =d= on the
+keyboard at the same time, on most unix systems this sends the =EOF= (end of
+file) character.
+
+To avoid having to do this you can also:
+
+#+begin_src sh
+$ echo "sin(x)" | derive x
+#+end_src
+
+** Latex output
+
+The optional switch =-l= instructs the program to produce its output in latex
+format:
+
+#+begin_src sh
+$ echo "sin(x)" | derive x
+\cos\left(x\right)
+#+end_src
+
+To see how this could be useful, take a look at [[to_pdf.sh]].
+
+* Tests
+
+If you want to run unit tests:
+
+#+begin_src sh
+$ make clean
+$ make test
+#+end_src
+
+If you also want test coverage:
+
+#+begin_src sh
+$ make clean
+$ make COV=1
+$ make COV=1 test
+$ make cov
+#+end_src
+
+then open [[lcov/index.html]] in your favourite browser.
+
+* Todo
+
+- Simplify expressions
+- Write some integration tests
 - =eqn(1)= output
