@@ -3,6 +3,7 @@ LDFLAGS = -lm
 TARG = derive
 OBJ = parse.o util.o ast.o derive.o
 SRC = $(OBJ:%.o=%.c)
+PREFIX = /usr/local
 
 ifeq (${DEBUG}, 1)
 	CFLAGS += -ggdb
@@ -11,8 +12,6 @@ endif
 ifeq (${COV}, 1)
 	CFLAGS += -g -ftest-coverage -fprofile-arcs
 endif
-
-.PHONY: all clean tags check-syntax
 
 all: $(TARG)
 
@@ -45,3 +44,13 @@ tags:
 
 check-syntax:
 	$(CC) $(CFLAGS) -fsyntax-only $(CHK_SOURCES)
+
+install: all
+	mkdir -p ${DESTDIR}${PREFIX}/bin
+	cp -f $(TARG) ${DESTDIR}${PREFIX}/bin
+	chmod 755 ${DESTDIR}${PREFIX}/bin/$(TARG)
+
+uninstall:
+	rm -f ${DESTDIR}${PREFIX}/bin/$(TARG)
+
+.PHONY: all clean tags check-syntax install uninstall
