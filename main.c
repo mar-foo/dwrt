@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	p = p_init("./test.txt");
+	p = p_init(NULL);
 	diff = NULL;
 
 	if(parse(p) < 0) {
