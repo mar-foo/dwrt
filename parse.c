@@ -74,8 +74,7 @@ l_init(char *filename)
 	l = emalloc(sizeof(Lexer));
 
 	if(filename == NULL) {
-		l->filename = ecalloc(5 + 1, sizeof(char));
-		l->filename = strcpy(l->filename, "stdin");
+		l->filename = "stdin";
 
 		f = stdin;
 	} else {
