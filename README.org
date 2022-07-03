@@ -1,4 +1,4 @@
-#+title: Derive
+#+title: Dwrt
 #+author: Mario Forzanini
 
 Symbolic differentiation of mathematical expressions
