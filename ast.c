@@ -26,8 +26,7 @@
 #include "dat.h"
 #include "fns.h"
 
-static void	ast_print_rec(Node*, int);
-static void	print_tabs(int);
+static void 	ast_print_rec(Node*, Symbol*);
 static Symbol*	symbol_copy(Symbol*);
 
 #define MAX_FUNC_LENGTH 5
@@ -81,28 +80,44 @@ ast_insert(Node *ast, Node *new)
 }
 
 void
-ast_print(Node *root)
+ast_print(Node *node)
 {
-	ast_print_rec(root, 0);
+	ast_print_rec(node, NULL);
 }
 
 static void
-ast_print_rec(Node *root, int level)
+ast_print_rec(Node *node, Symbol *previous)
 {
-	print_tabs(level);
-	if(root == NULL) {
-		printf("\n");
+	if(node == NULL) return;
+
+	switch(node->sym->type) {
+	case S_VAR:
+		printf("%c", node->sym->content->var);
+		return;
+	case S_NUM:
+		printf("%.2f", node->sym->content->num);
+		return;
+	case S_FUNC:
+		printf("%s(", node->sym->content->func);
+		ast_print_rec(node->right, node->sym);
+		printf(")");
+		return;
+	case S_OP:
+		if(previous != NULL && precedence(previous) > precedence(node->sym))
+				printf("(");
+
+		ast_print_rec(node->left, node->sym);
+
+		printf(" %c ", node->sym->content->op);
+
+		ast_print_rec(node->right, node->sym);
+
+		if(previous != NULL && precedence(previous) > precedence(node->sym))
+				printf(")");
+		return;
+	default:
 		return;
 	}
-	symbol_print(root->sym);
-
-	print_tabs(level);
-	printf("left\n");
-	ast_print_rec(root->left, level + 1);
-
-	print_tabs(level);
-	printf("right\n");
-	ast_print_rec(root->right, level + 1);
 }
 
 void
@@ -269,13 +284,6 @@ int
 num_equal(Symbol *sym, double num)
 {
 	return is_num(sym) ? fabs(sym->content->num - num) < 1e-7 : 0;
-}
-
-static void
-print_tabs(int tabs)
-{
-	int i;
-	for(i = 0; i < tabs; i++) printf("\t");
 }
 
 void

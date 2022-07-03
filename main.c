@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 	}
 
 	diff = ast_derive(p->ast, argv[1][0]);
-	ast_to_latex(diff);
+	ast_print(diff);
 	printf("\n");
 	ast_free(diff);
 	p_free(p);

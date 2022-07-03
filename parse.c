@@ -44,7 +44,6 @@ struct Stack {
 static char	l_getc(Lexer*);
 static void*	peek(Stack*);
 static void*	pop(Stack**);
-static int	precedence(Symbol*);
 static Stack*	push(Stack*, void*, enum stack_type);
 static Stack*	stack_alloc(void*, enum stack_type);
 static void	stack_free(Stack*);
@@ -407,7 +406,7 @@ pop(Stack **s)
 	return data;
 }
 
-static int
+int
 precedence(Symbol *s)
 {
 	if(s == NULL)

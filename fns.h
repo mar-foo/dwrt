@@ -42,6 +42,7 @@ Symbol*	operator_alloc(char);
 void	p_free(Parser*);
 Parser*	p_init(char*);
 int	parse(Parser*);
+int	precedence(Symbol*);
 char*	readall(FILE*);
 Symbol*	rparen_alloc(void);
 size_t	strappend(char*, char, size_t, size_t);
