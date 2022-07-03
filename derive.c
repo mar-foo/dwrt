@@ -356,7 +356,7 @@ ast_sub(Node *x, Node *y)
 
 	if(is_num(x->sym) && num_equal(x->sym, 0)) {
 		ast_free(x);
-		return y;
+		return ast_mul(ast_alloc(num_alloc(-1)), y);
 	} else if(is_num(y->sym) && num_equal(y->sym, 0)) {
 		ast_free(y);
 		return x;
