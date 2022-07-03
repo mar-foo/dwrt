@@ -9,7 +9,7 @@ read -r func
 cat <<EOF | pdflatex >/dev/null
 \documentclass{standalone}
 \begin{document}
-\$$(echo "$func" | ./derive "$1")\$
+\$$(echo "$func" | ./derive -l "$1")\$
 \end{document}
 EOF
 
