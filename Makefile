@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -Werror -pedantic -ansi -D_POSIX_C_SOURCE=200809L
+CFLAGS = -Wall -Wextra -Wno-unused-variable -Werror -pedantic -ansi -D_POSIX_C_SOURCE=200809L
 LDFLAGS =
 TARG = dwrt
 OBJ = parse.o util.o ast.o dwrt.o ast_nodes.o

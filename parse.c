@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "dat.h"
@@ -48,8 +49,6 @@ static Stack*	push(Stack*, void*, enum stack_type);
 static Stack*	stack_alloc(void*, enum stack_type);
 static void	stack_free(Stack*);
 static int	stack_len(Stack*);
-
-static char *known_funcs[] = {"cos", "cosh", "exp", "log", "sin", "sinh", "tan", "tanh"};
 
 static char
 l_getc(Lexer *l)
@@ -328,7 +327,7 @@ parse(Parser *p)
 				/* Throw error on unknown functions */
 				found = 0;
 				for(i = 0; i < KNOWN_FUNCS; i++) {
-					if(strcmp(le->lexeme, known_funcs[i]) == 0) {
+					if(strcmp(le->lexeme, known_funcs[i].func) == 0) {
 						sym = func_alloc(le->lexeme);
 						op_stack = push(op_stack, sym, SYM);
 						found = 1;
@@ -415,7 +414,7 @@ precedence(Symbol *s)
 		return -1;
 	switch(s->type) {
 	case S_OP:
-		switch(s->content->op){
+		switch(s->content.func){
 		case '-':
 		case '+':
 			return 0;

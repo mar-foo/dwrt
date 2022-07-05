@@ -20,6 +20,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,13 +31,10 @@ Node*
 ast_cos(Node *x)
 {
 	Node *cos;
-	char *f;
 	if(x == NULL)
 		return NULL;
 
-	f = ecalloc(4, sizeof(char));
-	f = strcpy(f, "cos");
-	cos = ast_alloc(func_alloc(f));
+	cos = ast_alloc(func_alloc("cos"));
 	ast_insert(cos, x);
 	return cos;
 }
@@ -45,14 +43,11 @@ Node*
 ast_cosh(Node *x)
 {
 	Node *cosh;
-	char *f;
 
 	if(x == NULL)
 		return NULL;
 
-	f = ecalloc(5, sizeof(char));
-	f = strcpy(f, "cosh");
-	cosh = ast_alloc(func_alloc(f));
+	cosh = ast_alloc(func_alloc("cosh"));
 	ast_insert(cosh, x);
 	return cosh;
 }
@@ -61,14 +56,11 @@ Node*
 ast_exp(Node *x)
 {
 	Node *exp;
-	char *f;
 
 	if(x == NULL)
 		return NULL;
 
-	f = ecalloc(4, sizeof(char));
-	f = strcpy(f, "exp");
-	exp = ast_alloc(func_alloc(f));
+	exp = ast_alloc(func_alloc("exp"));
 	ast_insert(exp, x);
 	return exp;
 }
@@ -89,7 +81,7 @@ ast_expt(Node *x, Node *y)
 		ast_free(y);
 		return x;
 	} else if(is_num(x->sym) && is_num(y->sym)) {
-		expt = ast_alloc(num_alloc(pow(x->sym->content->num, y->sym->content->num)));
+		expt = ast_alloc(num_alloc(pow(x->sym->content.num, y->sym->content.num)));
 		ast_free(x);
 		ast_free(y);
 		return expt;
@@ -120,7 +112,7 @@ ast_frac(Node *x, Node *y)
 		/*
 		 * Error handling when dividing by zero? How do I propagate the error?
 		 */
-		x->sym->content->num /= y->sym->content->num;
+		x->sym->content.num /= y->sym->content.num;
 		ast_free(y);
 		return x;
 	} else {
@@ -135,14 +127,11 @@ Node*
 ast_log(Node *x)
 {
 	Node *log;
-	char *f;
 
 	if(x == NULL)
 		return NULL;
 
-	f = ecalloc(4, sizeof(char));
-	f = strcpy(f, "log");
-	log = ast_alloc(func_alloc(f));
+	log = ast_alloc(func_alloc("log"));
 	ast_insert(log, x);
 	return log;
 }
@@ -168,7 +157,7 @@ ast_mul(Node *x, Node *y)
 		ast_free(x);
 		return y;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
-		x->sym->content->num *= y->sym->content->num;
+		x->sym->content.num *= y->sym->content.num;
 		ast_free(y);
 		return x;
 	} else {
@@ -183,14 +172,11 @@ Node*
 ast_sin(Node *x)
 {
 	Node *sin;
-	char *f;
 
 	if(x == NULL)
 		return x;
 
-	f = ecalloc(4, sizeof(char));
-	f = strcpy(f, "sin");
-	sin = ast_alloc(func_alloc(f));
+	sin = ast_alloc(func_alloc("sin"));
 	ast_insert(sin, x);
 	return sin;
 }
@@ -199,14 +185,11 @@ Node*
 ast_sinh(Node *x)
 {
 	Node *sinh;
-	char *f;
 
 	if(x == NULL)
 		return x;
 
-	f = ecalloc(5, sizeof(char));
-	f = strcpy(f, "sinh");
-	sinh = ast_alloc(func_alloc(f));
+	sinh = ast_alloc(func_alloc("sinh"));
 	ast_insert(sinh, x);
 	return sinh;
 }
@@ -223,7 +206,7 @@ ast_sub(Node *x, Node *y)
 		ast_free(y);
 		return x;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
-		x->sym->content->num -= y->sym->content->num;
+		x->sym->content.num -= y->sym->content.num;
 		ast_free(y);
 		return x;
 	} else {
@@ -246,7 +229,7 @@ ast_sum(Node *x, Node *y)
 		ast_free(y);
 		return x;
 	} else if(is_num(y->sym) && is_num(x->sym)) {
-		 x->sym->content->num += y->sym->content->num;
+		 x->sym->content.num += y->sym->content.num;
 		 ast_free(y);
 		 return x;
 	} else {
@@ -261,14 +244,11 @@ Node*
 ast_tan(Node *x)
 {
 	Node *tan;
-	char *f;
 
 	if(x == NULL)
 	return x;
 
-	f = ecalloc(4, sizeof(char));
-	f = strcpy(f, "tan");
-	tan = ast_alloc(func_alloc(f));
+	tan = ast_alloc(func_alloc("tan"));
 	ast_insert(tan, x);
 	return tan;
 }
@@ -277,14 +257,11 @@ Node*
 ast_tanh(Node *x)
 {
 	Node *tanh;
-	char *f;
 
 	if(x == NULL)
 	return x;
 
-	f = ecalloc(5, sizeof(char));
-	f = strcpy(f, "tanh");
-	tanh = ast_alloc(func_alloc(f));
+	tanh = ast_alloc(func_alloc("tanh"));
 	ast_insert(tanh, x);
 	return tanh;
 }

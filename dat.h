@@ -18,6 +18,10 @@
  *
  */
 
+#define LEN(x) (sizeof((x)) / sizeof((x)[0]))
+#define KNOWN_FUNCS 8
+#define KNOWN_OPERATORS 8
+
 enum lex_states {
 	LS_ERROR,
 	LS_NUMBER,
@@ -44,6 +48,53 @@ enum symbol_type {
 	S_RPAREN,
 	S_VAR
 };
+
+enum funcs {
+	COS = 0x00,
+	COSH,
+	EXP,
+	LOG,
+	SIN,
+	SINH,
+	TAN,
+	TANH
+};
+
+static struct func_to_bit {
+	char *func;
+	uint8_t bit;
+} known_funcs[] = {
+	{"cos", COS},
+	{"cosh", COSH},
+	{"exp", EXP},
+	{"log", LOG},
+	{"sin", SIN},
+	{"sinh", SINH},
+	{"tan", TAN},
+	{"tanh", TANH}
+};
+
+enum operators {
+	EXPT = 0x00,
+	FRAC = 0x10,
+	MUL = 0x20,
+	SUB = 0x30,
+	SUM = 0x40
+};
+
+static struct op_to_bit {
+	char op;
+	uint8_t bit;
+} known_operators[] = {
+	{'^', EXPT},
+	{'/', FRAC},
+	{'*', MUL},
+	{'-', SUB},
+	{'+', SUM}
+};
+
+#define IS_FUNC 0x0F;
+#define IS_OP 0xF0;
 
 typedef struct Lexeme Lexeme;
 typedef struct Lexer Lexer;
@@ -81,9 +132,9 @@ struct Parser {
 struct Symbol {
 	enum symbol_type type;
 	union {
-		char *func;
+		uint8_t func;
 		double num;
-		char op;
 		char var;
-	} *content;
+	} content;
 };
+
