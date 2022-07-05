@@ -103,10 +103,21 @@ ast_dwrt(Node *ast, char var)
 	return NULL;
 }
 
+/* TODO: Make some kind of table to store function -> derivative association
+ * Differentiate function nodes with respect to var
+ */
 static Node*
 ast_dwrt_func(Node *ast, char var)
 {
 	Node *arg;
+	/* TODO: Make this a hash map */
+	/* static struct derivative {
+		char *func;
+		Derivative derivative;
+	} derivative[] = {
+		{"cos", ast_mul(ast_dwrt(arg, var), ast_mul(ast_alloc(num_alloc(-1)), ast_sin(ast_copy(arg))))},
+		{"sin", ast_mul(ast_dwrt(arg, var), ast_cos(ast_copy(arg)))},
+	}; */
 
 	arg = ast->right;
 	if(strcmp(ast->sym->content->func, "cos") == 0) {
@@ -131,6 +142,9 @@ ast_dwrt_func(Node *ast, char var)
 	return NULL;
 }
 
+/*
+ * Differentiate operator nodes (+, -, *, /, ^) with respect to var
+ */
 static Node*
 ast_dwrt_op(Node *ast, char var)
 {

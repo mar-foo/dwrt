@@ -53,6 +53,9 @@ ast_free(Node *ast)
 	free(ast);
 }
 
+/*
+ * Returns a pointer to a heap-allocated deep copy of src
+ */
 Node*
 ast_copy(Node *src)
 {
@@ -67,6 +70,11 @@ ast_copy(Node *src)
 	return dest;
 }
 
+/*
+ * Insert new as child of ast. Try to insert it as right child, then fallback
+ * to left child. If both right and left already point to something, left will
+ * be overwritten.
+ */
 void
 ast_insert(Node *ast, Node *new)
 {
@@ -302,6 +310,10 @@ symbol_copy(Symbol *src)
 	dest = NULL;
 	switch(src->type) {
 	case S_FUNC:
+		/* TODO: Fix this
+		 * symbol_copy tries to free symbol->content->func, so heap
+		 * allocate this
+		 */
 		func = ecalloc(MAX_FUNC_LENGTH, sizeof(char));
 		func = strcpy(func, src->content->func);
 		dest = func_alloc(func);
