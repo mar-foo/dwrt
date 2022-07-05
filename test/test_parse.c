@@ -265,14 +265,14 @@ START_TEST(test_parse_non_parenthesized)
 	p = p_alloc("files/test_parse_non_parenthesized.txt");
 	ck_assert_msg(parse(p) == 0, "%s", p->err);
 
-	ck_assert(p->ast->sym->content->op == '/');
-	ck_assert_str_eq(p->ast->right->sym->content->func, "sin");
+	ck_assert_uint_eq(p->ast->sym->content.func, FRAC);
+	ck_assert_uint_eq(p->ast->right->sym->content.func, SIN);
 	ck_assert(num_equal(p->ast->right->right->sym, 2));
 	ck_assert_ptr_null(p->ast->right->left);
-	ck_assert(p->ast->left->sym->content->op == '+');
+	ck_assert_uint_eq(p->ast->left->sym->content.func, SUM);
 	ck_assert(num_equal(p->ast->left->right->sym, 4));
-	ck_assert(p->ast->left->left->sym->content->op == '*');
-	ck_assert(p->ast->left->left->right->sym->content->var == 'x');
+	ck_assert_uint_eq(p->ast->left->left->sym->content.func, MUL);
+	ck_assert(p->ast->left->left->right->sym->content.var == 'x');
 	ck_assert(num_equal(p->ast->left->left->left->sym, 2));
 
 	p_free(p);
@@ -286,14 +286,14 @@ START_TEST(test_parse_parenthesized)
 	p = p_alloc("files/test_parse_parenthesized.txt");
 	ck_assert_msg(parse(p) == 0, "%s", p->err);
 
-	ck_assert(p->ast->sym->content->op == '/');
-	ck_assert_str_eq(p->ast->right->sym->content->func, "sin");
+	ck_assert_uint_eq(p->ast->sym->content.func, FRAC);
+	ck_assert_uint_eq(p->ast->right->sym->content.func, SIN);
 	ck_assert(num_equal(p->ast->right->right->sym, 2));
 	ck_assert_ptr_null(p->ast->right->left);
-	ck_assert(p->ast->left->sym->content->op == '+');
+	ck_assert_uint_eq(p->ast->left->sym->content.func, SUM);
 	ck_assert(num_equal(p->ast->left->right->sym, 4));
-	ck_assert(p->ast->left->left->sym->content->op == '*');
-	ck_assert(p->ast->left->left->right->sym->content->var == 'x');
+	ck_assert_uint_eq(p->ast->left->left->sym->content.func, MUL);
+	ck_assert(p->ast->left->left->right->sym->content.var == 'x');
 	ck_assert(num_equal(p->ast->left->left->left->sym, 2));
 
 	p_free(p);

@@ -33,18 +33,18 @@ START_TEST(test_dwrt_op_expt_var_to_num)
 	ck_assert_ptr_nonnull(diff);
 
 	ck_assert_int_eq(diff->sym->type, S_OP);
-	ck_assert(diff->sym->content->op == '*');
+	ck_assert_uint_eq(diff->sym->content.func, MUL);
 
 	ck_assert(is_num(diff->left->sym));
-	ck_assert_double_eq(diff->left->sym->content->num, 7);
+	ck_assert_double_eq(diff->left->sym->content.num, 7);
 
 	ck_assert(is_operator(diff->right->sym));
-	ck_assert(diff->right->sym->content->op == '^');
+	ck_assert_uint_eq(diff->right->sym->content.func, EXPT);
 
 	ck_assert(is_same_var(diff->right->left->sym, 'x'));
 
 	ck_assert(is_num(diff->right->right->sym));
-	ck_assert_double_eq(diff->right->right->sym->content->num, 6);
+	ck_assert_double_eq(diff->right->right->sym->content.num, 6);
 
 	ast_free(expt);
 	ast_free(diff);
@@ -62,7 +62,7 @@ START_TEST(test_dwrt_op_expt_two_num)
 	diff = ast_dwrt(expt, 'x');
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(is_num(diff->sym));
-	ck_assert_double_eq(diff->sym->content->num, 0);
+	ck_assert_double_eq(diff->sym->content.num, 0);
 
 	ast_free(expt);
 	ast_free(diff);
@@ -91,14 +91,14 @@ START_TEST(test_dwrt_op_frac)
 	diff = ast_dwrt(ast, 'x');
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_OP);
-	ck_assert(diff->sym->content->op == '/');
+	ck_assert_uint_eq(diff->sym->content.func, FRAC);
 
 	ck_assert(diff->left->sym->type == S_NUM);
-	ck_assert_double_eq(diff->left->sym->content->num, -1);
+	ck_assert_double_eq(diff->left->sym->content.num, -1);
 	ck_assert(ast->left != diff->left);
 
 	ck_assert(diff->right->sym->type == S_OP);
-	ck_assert(diff->right->sym->content->op == '^');
+	ck_assert_uint_eq(diff->right->sym->content.func, EXPT);
 
 	ck_assert(is_same_var(diff->right->left->sym, 'x'));
 	ck_assert(num_equal(diff->right->right->sym, 2));
@@ -117,7 +117,7 @@ START_TEST(test_dwrt_op_mul)
 
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_NUM);
-	ck_assert_double_eq(diff->sym->content->num, 5);
+	ck_assert_double_eq(diff->sym->content.num, 5);
 
 	ast_free(ast);
 	ast_free(diff);
@@ -132,7 +132,7 @@ START_TEST(test_dwrt_op_sub)
 	diff = ast_dwrt(ast, 'x');
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_NUM);
-	ck_assert_double_eq(diff->sym->content->num, 1);
+	ck_assert_double_eq(diff->sym->content.num, 1);
 
 	ast_free(ast);
 	ast_free(diff);
@@ -147,7 +147,7 @@ START_TEST(test_dwrt_op_sum)
 	diff = ast_dwrt(ast, 'x');
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_NUM);
-	ck_assert_double_eq(diff->sym->content->num, 1);
+	ck_assert_double_eq(diff->sym->content.num, 1);
 
 	ast_free(ast);
 	ast_free(diff);
@@ -164,13 +164,13 @@ START_TEST(test_dwrt_func_cos)
 	ck_assert_ptr_nonnull(diff);
 
 	ck_assert(diff->sym->type == S_OP);
-	ck_assert(diff->sym->content->op == '*');
+	ck_assert_uint_eq(diff->sym->content.func, MUL);
 
 	ck_assert(diff->left->sym->type == S_NUM);
-	ck_assert_double_eq(diff->left->sym->content->num, -1);
+	ck_assert_double_eq(diff->left->sym->content.num, -1);
 
 	ck_assert(diff->right->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->right->sym->content->func, "sin");
+	ck_assert_uint_eq(diff->right->sym->content.func, SIN);
 
 	ast_free(ast);
 	ast_free(diff);
@@ -187,10 +187,10 @@ START_TEST(test_dwrt_func_cosh)
 
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->sym->content->func, "sinh");
+	ck_assert_uint_eq(diff->sym->content.func, SINH);
 
 	ck_assert(diff->right->sym->type == S_VAR);
-	ck_assert(diff->right->sym->content->var == 'x');
+	ck_assert(diff->right->sym->content.var == 'x');
 
 	ast_free(ast);
 	ast_free(diff);
@@ -206,10 +206,10 @@ START_TEST(test_dwrt_func_exp)
 
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->sym->content->func, "exp");
+	ck_assert_uint_eq(diff->sym->content.func, EXP);
 
 	ck_assert(diff->right->sym->type == S_VAR);
-	ck_assert(diff->right->sym->content->var == 'x');
+	ck_assert(diff->right->sym->content.var == 'x');
 
 	ast_free(ast);
 	ast_free(diff);
@@ -225,13 +225,13 @@ START_TEST(test_dwrt_func_log)
 
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_OP);
-	ck_assert(diff->sym->content->op == '/');
+	ck_assert_uint_eq(diff->sym->content.func, FRAC);
 
 	ck_assert(is_num(diff->left->sym));
 	ck_assert(num_equal(diff->left->sym, 1));
 
 	ck_assert(diff->right->sym->type == S_VAR);
-	ck_assert(diff->right->sym->content->var == 'x');
+	ck_assert(diff->right->sym->content.var == 'x');
 
 	ast_free(ast);
 	ast_free(diff);
@@ -247,10 +247,10 @@ START_TEST(test_dwrt_func_sin)
 
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->sym->content->func, "cos");
+	ck_assert_uint_eq(diff->sym->content.func, COS);
 
 	ck_assert(diff->right->sym->type == S_VAR);
-	ck_assert(diff->right->sym->content->var == 'x');
+	ck_assert(diff->right->sym->content.var == 'x');
 
 	ast_free(ast);
 	ast_free(diff);
@@ -266,10 +266,10 @@ START_TEST(test_dwrt_func_sinh)
 
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->sym->content->func, "cosh");
+	ck_assert_uint_eq(diff->sym->content.func, COSH);
 
 	ck_assert(diff->right->sym->type == S_VAR);
-	ck_assert(diff->right->sym->content->var == 'x');
+	ck_assert(diff->right->sym->content.var == 'x');
 
 	ast_free(ast);
 	ast_free(diff);
@@ -285,19 +285,19 @@ START_TEST(test_dwrt_func_tan)
 
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_OP);
-	ck_assert(diff->sym->content->op == '+');
+	ck_assert_uint_eq(diff->sym->content.func, SUM);
 
 	ck_assert(diff->left->sym->type == S_NUM);
-	ck_assert_double_eq(diff->left->sym->content->num, 1);
+	ck_assert_double_eq(diff->left->sym->content.num, 1);
 
 	ck_assert(diff->right->sym->type == S_OP);
-	ck_assert(diff->right->sym->content->op == '^');
+	ck_assert_uint_eq(diff->right->sym->content.func, EXPT);
 
 	ck_assert(diff->right->left->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->right->left->sym->content->func, "tan");
+	ck_assert_uint_eq(diff->right->left->sym->content.func, TAN);
 
 	ck_assert(diff->right->left->right->sym->type == S_VAR);
-	ck_assert(diff->right->left->right->sym->content->op == 'x');
+	ck_assert(diff->right->left->right->sym->content.var == 'x');
 
 	ck_assert(num_equal(diff->right->right->sym, 2));
 
@@ -315,21 +315,21 @@ START_TEST(test_dwrt_func_tanh)
 
 	ck_assert_ptr_nonnull(diff);
 	ck_assert(diff->sym->type == S_OP);
-	ck_assert(diff->sym->content->op == '-');
+	ck_assert_uint_eq(diff->sym->content.func, SUB);
 
 	ck_assert(diff->right->sym->type == S_NUM);
-	ck_assert_double_eq(diff->right->sym->content->num, 1);
+	ck_assert_double_eq(diff->right->sym->content.num, 1);
 
 	ck_assert(diff->left->sym->type == S_OP);
-	ck_assert(diff->left->sym->content->op == '^');
+	ck_assert_uint_eq(diff->left->sym->content.func, EXPT);
 
 	ck_assert(num_equal(diff->left->right->sym, 2));
 
 	ck_assert(diff->left->left->sym->type == S_FUNC);
-	ck_assert_str_eq(diff->left->left->sym->content->func, "tanh");
+	ck_assert_uint_eq(diff->left->left->sym->content.func, TANH);
 
 	ck_assert(diff->left->left->right->sym->type == S_VAR);
-	ck_assert(diff->left->left->right->sym->content->op == 'x');
+	ck_assert(diff->left->left->right->sym->content.var == 'x');
 
 	ast_free(ast);
 	ast_free(diff);
@@ -345,9 +345,9 @@ START_TEST(test_ast_cos)
 	ck_assert_ptr_null(ast->left);
 	ck_assert_ptr_nonnull(ast->right);
 
-	ck_assert_str_eq(ast->sym->content->func, "cos");
+	ck_assert_uint_eq(ast->sym->content.func, COS);
 	ck_assert(ast->right->sym->type == S_VAR);
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 }
@@ -373,9 +373,9 @@ START_TEST(test_ast_cosh)
 	ck_assert_ptr_null(ast->left);
 	ck_assert_ptr_nonnull(ast->right);
 
-	ck_assert_str_eq(ast->sym->content->func, "cosh");
+	ck_assert_uint_eq(ast->sym->content.func, COSH);
 	ck_assert(ast->right->sym->type == S_VAR);
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 }
@@ -399,9 +399,9 @@ START_TEST(test_ast_exp)
 	ck_assert_ptr_null(ast->left);
 	ck_assert_ptr_nonnull(ast->right);
 
-	ck_assert_str_eq(ast->sym->content->func, "exp");
+	ck_assert_uint_eq(ast->sym->content.func, EXP);
 	ck_assert(ast->right->sym->type == S_VAR);
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 
@@ -424,7 +424,7 @@ START_TEST(test_ast_expt_left_is_one)
 	expt = ast_expt(ast_alloc(num_alloc(1)), ast_alloc(var_alloc('x')));
 	ck_assert_ptr_nonnull(expt);
 	ck_assert(is_num(expt->sym));
-	ck_assert_double_eq(expt->sym->content->num, 1);
+	ck_assert_double_eq(expt->sym->content.num, 1);
 
 	ast_free(expt);
 }
@@ -437,7 +437,7 @@ START_TEST(test_ast_expt_right_is_zero)
 	expt = ast_expt(ast_alloc(var_alloc('x')), ast_alloc(num_alloc(0)));
 	ck_assert_ptr_nonnull(expt);
 	ck_assert(is_num(expt->sym));
-	ck_assert_double_eq(expt->sym->content->num, 1);
+	ck_assert_double_eq(expt->sym->content.num, 1);
 
 	ast_free(expt);
 }
@@ -450,7 +450,7 @@ START_TEST(test_ast_expt_two_num)
 	expt = ast_expt(ast_alloc(num_alloc(5)), ast_alloc(num_alloc(2)));
 	ck_assert_ptr_nonnull(expt);
 	ck_assert(is_num(expt->sym));
-	ck_assert_double_eq(expt->sym->content->num, 25);
+	ck_assert_double_eq(expt->sym->content.num, 25);
 
 	ast_free(expt);
 }
@@ -463,10 +463,10 @@ START_TEST(test_ast_expt)
 	expt = ast_expt(ast_alloc(var_alloc('x')), ast_alloc(num_alloc(5)));
 	ck_assert_ptr_nonnull(expt);
 	ck_assert(is_operator(expt->sym));
-	ck_assert(expt->sym->content->op == '^');
+	ck_assert_uint_eq(expt->sym->content.func, EXPT);
 	ck_assert(is_same_var(expt->left->sym, 'x'));
 	ck_assert(is_num(expt->right->sym));
-	ck_assert_double_eq(expt->right->sym->content->num, 5);
+	ck_assert_double_eq(expt->right->sym->content.num, 5);
 
 	ast_free(expt);
 }
@@ -481,9 +481,9 @@ START_TEST(test_ast_log)
 	ck_assert_ptr_null(ast->left);
 	ck_assert_ptr_nonnull(ast->right);
 
-	ck_assert_str_eq(ast->sym->content->func, "log");
+	ck_assert_uint_eq(ast->sym->content.func, LOG);
 	ck_assert(ast->right->sym->type == S_VAR);
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 
@@ -509,7 +509,7 @@ START_TEST(test_ast_frac_right_is_one)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_VAR);
-	ck_assert(ast->sym->content->var == 'x');
+	ck_assert(ast->sym->content.var == 'x');
 
 	ast_free(ast);
 }
@@ -534,7 +534,7 @@ START_TEST(test_ast_frac_left_is_zero)
 
 	ck_assert_ptr_nonnull(ast);
 	ck_assert(is_num(ast->sym));
-	ck_assert_double_eq(ast->sym->content->num, 0);
+	ck_assert_double_eq(ast->sym->content.num, 0);
 
 	ast_free(ast);
 }
@@ -550,7 +550,7 @@ START_TEST(test_ast_frac_two_num)
 	ck_assert_ptr_null(ast->right);
 	ck_assert_ptr_null(ast->left);
 
-	ck_assert_double_eq(ast->sym->content->num, 10. / 2.);
+	ck_assert_double_eq(ast->sym->content.num, 10. / 2.);
 	ast_free(ast);
 }
 END_TEST
@@ -564,9 +564,9 @@ START_TEST(test_ast_frac)
 	ck_assert_ptr_nonnull(ast->right);
 	ck_assert_ptr_nonnull(ast->left);
 
-	ck_assert(ast->sym->content->op == '/');
-	ck_assert_double_eq(ast->left->sym->content->num, 10);
-	ck_assert(ast->right->sym->content->var == 'z');
+	ck_assert_uint_eq(ast->sym->content.func, FRAC);
+	ck_assert_double_eq(ast->left->sym->content.num, 10);
+	ck_assert(ast->right->sym->content.var == 'z');
 
 	ast_free(ast);
 }
@@ -583,7 +583,7 @@ START_TEST(test_ast_mul_left_is_one)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_VAR);
-	ck_assert(ast->sym->content->var == 'x');
+	ck_assert(ast->sym->content.var == 'x');
 
 	ast_free(ast);
 }
@@ -599,7 +599,7 @@ START_TEST(test_ast_mul_left_is_zero)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_NUM);
-	ck_assert_double_eq(ast->sym->content->num, 0);
+	ck_assert_double_eq(ast->sym->content.num, 0);
 
 	ast_free(ast);
 }
@@ -616,7 +616,7 @@ START_TEST(test_ast_mul_right_is_one)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_VAR);
-	ck_assert(ast->sym->content->var == 'x');
+	ck_assert(ast->sym->content.var == 'x');
 
 	ast_free(ast);
 }
@@ -632,7 +632,7 @@ START_TEST(test_ast_mul_right_is_zero)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_NUM);
-	ck_assert_double_eq(ast->sym->content->num, 0);
+	ck_assert_double_eq(ast->sym->content.num, 0);
 
 	ast_free(ast);
 }
@@ -648,7 +648,7 @@ START_TEST(test_ast_mul_two_num)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_NUM);
-	ck_assert_double_eq(ast->sym->content->num, 35);
+	ck_assert_double_eq(ast->sym->content.num, 35);
 
 	ast_free(ast);
 }
@@ -664,9 +664,9 @@ START_TEST(test_ast_mul)
 	ck_assert_ptr_nonnull(ast->left);
 
 	ck_assert(is_operator(ast->sym));
-	ck_assert(ast->sym->content->op == '*');
-	ck_assert(ast->left->sym->content->var == 'x');
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert_uint_eq(ast->sym->content.func, MUL);
+	ck_assert(ast->left->sym->content.var == 'x');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 }
@@ -681,9 +681,9 @@ START_TEST(test_ast_sin)
 	ck_assert_ptr_null(ast->left);
 	ck_assert_ptr_nonnull(ast->right);
 
-	ck_assert_str_eq(ast->sym->content->func, "sin");
+	ck_assert_uint_eq(ast->sym->content.func, SIN);
 	ck_assert(ast->right->sym->type == S_VAR);
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 }
@@ -707,9 +707,9 @@ START_TEST(test_ast_sinh)
 	ck_assert_ptr_null(ast->left);
 	ck_assert_ptr_nonnull(ast->right);
 
-	ck_assert_str_eq(ast->sym->content->func, "sinh");
+	ck_assert_uint_eq(ast->sym->content.func, SINH);
 	ck_assert(ast->right->sym->type == S_VAR);
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 }
@@ -732,13 +732,13 @@ START_TEST(test_ast_sub_left_is_zero)
 	ck_assert_ptr_nonnull(ast);
 
 	ck_assert(is_operator(ast->sym));
-	ck_assert(ast->sym->content->op == '*');
+	ck_assert_uint_eq(ast->sym->content.func, MUL);
 
 	ck_assert(is_num(ast->left->sym));
 	ck_assert(num_equal(ast->left->sym, -1));
 
 	ck_assert(ast->right->sym->type == S_VAR);
-	ck_assert(ast->right->sym->content->var == 'x');
+	ck_assert(ast->right->sym->content.var == 'x');
 
 	ast_free(ast);
 }
@@ -754,7 +754,7 @@ START_TEST(test_ast_sub_right_is_zero)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_VAR);
-	ck_assert(ast->sym->content->var == 'x');
+	ck_assert(ast->sym->content.var == 'x');
 
 	ast_free(ast);
 }
@@ -770,7 +770,7 @@ START_TEST(test_ast_sub_two_num)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_NUM);
-	ck_assert_double_eq(ast->sym->content->num, 2);
+	ck_assert_double_eq(ast->sym->content.num, 2);
 
 	ast_free(ast);
 }
@@ -786,9 +786,9 @@ START_TEST(test_ast_sub)
 	ck_assert_ptr_nonnull(ast->left);
 
 	ck_assert(is_operator(ast->sym));
-	ck_assert(ast->sym->content->op == '-');
-	ck_assert(ast->left->sym->content->var == 'x');
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert_uint_eq(ast->sym->content.func, SUB);
+	ck_assert(ast->left->sym->content.var == 'x');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 }
@@ -804,7 +804,7 @@ START_TEST(test_ast_sum_left_is_zero)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_VAR);
-	ck_assert(ast->sym->content->var == 'x');
+	ck_assert(ast->sym->content.var == 'x');
 
 	ast_free(ast);
 }
@@ -820,7 +820,7 @@ START_TEST(test_ast_sum_right_is_zero)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_VAR);
-	ck_assert(ast->sym->content->var == 'x');
+	ck_assert(ast->sym->content.var == 'x');
 
 	ast_free(ast);
 }
@@ -836,7 +836,7 @@ START_TEST(test_ast_sum_two_num)
 	ck_assert_ptr_null(ast->left);
 
 	ck_assert(ast->sym->type == S_NUM);
-	ck_assert_double_eq(ast->sym->content->num, 12);
+	ck_assert_double_eq(ast->sym->content.num, 12);
 
 	ast_free(ast);
 }
@@ -852,9 +852,9 @@ START_TEST(test_ast_sum)
 	ck_assert_ptr_nonnull(ast->left);
 
 	ck_assert(is_operator(ast->sym));
-	ck_assert(ast->sym->content->op == '+');
-	ck_assert(ast->left->sym->content->var == 'x');
-	ck_assert(ast->right->sym->content->var == 'y');
+	ck_assert_uint_eq(ast->sym->content.func, SUM);
+	ck_assert(ast->left->sym->content.var == 'x');
+	ck_assert(ast->right->sym->content.var == 'y');
 
 	ast_free(ast);
 }

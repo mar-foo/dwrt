@@ -46,7 +46,7 @@ START_TEST(test_func_alloc)
 
 	sym = func_alloc("sin");
 	ck_assert(sym->type == S_FUNC);
-	ck_assert_str_eq(sym->content->func, "sin");
+	ck_assert_uint_eq(sym->content.func, SIN);
 
 	symbol_free(sym);
 }
@@ -58,7 +58,6 @@ START_TEST(test_lparen_alloc)
 
 	sym = lparen_alloc();
 	ck_assert(sym->type == S_LPAREN);
-	ck_assert_str_eq(sym->content->func, "(");
 
 	symbol_free(sym);
 }
@@ -70,7 +69,7 @@ START_TEST(test_num_alloc)
 
 	sym = num_alloc(5);
 	ck_assert(sym->type == S_NUM);
-	ck_assert_double_eq(sym->content->num, 5);
+	ck_assert_double_eq(sym->content.num, 5);
 
 	symbol_free(sym);
 }
@@ -82,7 +81,7 @@ START_TEST(test_operator_alloc)
 
 	sym = operator_alloc('+');
 	ck_assert(sym->type == S_OP);
-	ck_assert(sym->content->op == '+');
+	ck_assert_uint_eq(sym->content.func, SUM);
 
 	symbol_free(sym);
 }
@@ -94,7 +93,6 @@ START_TEST(test_rparen_alloc)
 
 	sym = rparen_alloc();
 	ck_assert(sym->type == S_RPAREN);
-	ck_assert_str_eq(sym->content->func, ")");
 
 	symbol_free(sym);
 }
@@ -106,7 +104,7 @@ START_TEST(test_var_alloc)
 
 	sym = var_alloc('x');
 	ck_assert(sym->type == S_VAR);
-	ck_assert(sym->content->var == 'x');
+	ck_assert(sym->content.var == 'x');
 
 	symbol_free(sym);
 }
@@ -152,7 +150,7 @@ START_TEST(test_ast_copy_deep)
 
 	dest = ast_copy(src);
 	ck_assert(is_operator(dest->sym));
-	ck_assert(dest->sym->content->op == '+');
+	ck_assert_uint_eq(dest->sym->content.func, SUM);
 	ck_assert(dest != src);
 	ck_assert_ptr_nonnull(dest->right);
 	ck_assert_ptr_nonnull(dest->left);
@@ -164,7 +162,7 @@ START_TEST(test_ast_copy_deep)
 	ck_assert(num_equal(dest->left->sym, 5));
 
 	ck_assert(is_function(dest->right->sym));
-	ck_assert_str_eq(dest->right->sym->content->func, "sin");
+	ck_assert_uint_eq(dest->right->sym->content.func, SIN);
 
 	ck_assert_ptr_null(dest->right->left);
 	ck_assert(num_equal(dest->right->right->sym, 6));
