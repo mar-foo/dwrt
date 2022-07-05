@@ -66,7 +66,7 @@ l_free(Lexer *lex)
 }
 
 Lexer*
-l_init(char *filename)
+l_alloc(char *filename)
 {
 	FILE *f;
 	Lexer *l;
@@ -234,15 +234,18 @@ p_free(Parser *p)
 	free(p);
 }
 
+/*
+ * Allocate a parser for file filename, if filename is NULL read stdin instead
+ */
 Parser*
-p_init(char *filename)
+p_alloc(char *filename)
 {
 	Parser *p;
 
 	p = emalloc(sizeof(Parser));
 	p->ast = NULL;
 	p->err = NULL;
-	p->l = l_init(filename);
+	p->l = l_alloc(filename);
 	return p;
 }
 

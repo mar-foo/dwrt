@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	p = p_init(NULL);
+	p = p_alloc(NULL);
 	diff = NULL;
 
 	if(parse(p) < 0) {
