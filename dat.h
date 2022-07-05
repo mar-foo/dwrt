@@ -20,7 +20,7 @@
 
 #define LEN(x) (sizeof((x)) / sizeof((x)[0]))
 #define KNOWN_FUNCS 8
-#define KNOWN_OPERATORS 8
+#define KNOWN_OPERATORS 5
 
 enum lex_states {
 	LS_ERROR,
