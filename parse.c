@@ -262,16 +262,14 @@ parse(Parser *p)
 	Symbol *sym, *head;
 
 	op_stack = node_stack = NULL;
-	for(le = lex(p->l); le->type != LE_EOF && le->type != LE_ERROR; free(le), le = lex(p->l)) {
+	for(le = lex(p->l); le->type != LE_EOF && le->type != LE_ERROR; free(le->lexeme), free(le), le = lex(p->l)) {
 		switch(le->type){
 		case LE_NUMBER:
 			sym = num_alloc(atof(le->lexeme));
 			node_stack = push(node_stack, ast_alloc(sym), NODE);
-			free(le->lexeme);
 			break;
 		case LE_OPERATOR:
 			sym = operator_alloc(le->lexeme[0]);
-			free(le->lexeme);
 			head = peek(op_stack);
 			while(head != NULL &&
 			      ! is_lparen(head) &&
@@ -291,7 +289,6 @@ parse(Parser *p)
 			break;
 		case LE_LPAREN:
 			sym = lparen_alloc();
-			free(le->lexeme);
 			op_stack = push(op_stack, sym, SYM);
 			break;
 		case LE_RPAREN:
@@ -316,13 +313,11 @@ parse(Parser *p)
 				ast_insert(tmp, pop(&node_stack));
 				node_stack = push(node_stack, tmp, NODE);
 			}
-			free(le->lexeme);
 			break;
 		case LE_SYMBOL:
 			if(strlen(le->lexeme) == 1) {
 				sym = var_alloc(le->lexeme[0]);
 				node_stack = push(node_stack, ast_alloc(sym), NODE);
-				free(le->lexeme);
 			} else {
 				/* Throw error on unknown functions */
 				found = 0;
