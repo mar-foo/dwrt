@@ -51,6 +51,8 @@ typedef struct Node Node;
 typedef struct Parser Parser;
 typedef struct Symbol Symbol;
 
+typedef Node* (*Derivative)(Node*, char);
+
 struct Lexer {
 	size_t len; /* data length */
 	enum lex_states state; /* where was I? */
