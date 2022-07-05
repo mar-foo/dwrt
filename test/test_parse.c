@@ -25,20 +25,20 @@
 #include "../dat.h"
 #include "../fns.h"
 
-START_TEST(test_l_init_non_exist)
+START_TEST(test_l_alloc_non_exist)
 {
 	Lexer *l;
 
-	l = l_init("files/non_existent.txt");
+	l = l_alloc("files/non_existent.txt");
 	ck_assert_ptr_null(l);
 }
 END_TEST
 
-START_TEST(test_l_init_exist)
+START_TEST(test_l_alloc_exist)
 {
 	Lexer *l;
 
-	l = l_init("files/test_lex.txt");
+	l = l_alloc("files/test_lex.txt");
 	ck_assert_ptr_nonnull(l);
 	ck_assert_str_eq("files/test_lex.txt", l->filename);
 	ck_assert_ptr_eq(l->pos, l->data);
@@ -55,7 +55,7 @@ START_TEST(test_lex_lparen)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("files/test_lex_lparen.txt");
+	l = l_alloc("files/test_lex_lparen.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_LPAREN);
@@ -72,7 +72,7 @@ START_TEST(test_lex_number)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("files/test_lex_number.txt");
+	l = l_alloc("files/test_lex_number.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_NUMBER);
@@ -89,7 +89,7 @@ START_TEST(test_lex_operator)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("files/test_lex_operator.txt");
+	l = l_alloc("files/test_lex_operator.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_OPERATOR);
@@ -106,7 +106,7 @@ START_TEST(test_lex_rparen)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("files/test_lex_rparen.txt");
+	l = l_alloc("files/test_lex_rparen.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_RPAREN);
@@ -123,7 +123,7 @@ START_TEST(test_lex_symbol)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("files/test_lex_symbol.txt");
+	l = l_alloc("files/test_lex_symbol.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_SYMBOL);
@@ -140,7 +140,7 @@ START_TEST(test_lex_unknown)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("files/test_lex_unknown.txt");
+	l = l_alloc("files/test_lex_unknown.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_ERROR);
@@ -157,7 +157,7 @@ START_TEST(test_lex_full)
 	Lexeme *le;
 	Lexer *l;
 
-	l = l_init("files/test_lex_full.txt");
+	l = l_alloc("files/test_lex_full.txt");
 
 	le = lex(l);
 	ck_assert(le->type == LE_SYMBOL);
@@ -240,7 +240,7 @@ START_TEST(test_parse_empty)
 {
 	Parser *p;
 
-	p = p_init("files/test_parse_empty.txt");
+	p = p_alloc("files/test_parse_empty.txt");
 
 	ck_assert(parse(p) == 0);
 	ck_assert_ptr_null(p->ast);
@@ -251,7 +251,7 @@ END_TEST
 START_TEST(test_parse_malformed_expression)
 {
 	Parser *p;
-	p = p_init("files/test_parse_malformed_expression.txt");
+	p = p_alloc("files/test_parse_malformed_expression.txt");
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
 	ck_assert_str_eq(p->err, "files/test_parse_malformed_expression.txt: malformed expression\n");
@@ -262,7 +262,7 @@ END_TEST
 START_TEST(test_parse_non_parenthesized)
 {
 	Parser *p;
-	p = p_init("files/test_parse_non_parenthesized.txt");
+	p = p_alloc("files/test_parse_non_parenthesized.txt");
 	ck_assert_msg(parse(p) == 0, "%s", p->err);
 
 	ck_assert(p->ast->sym->content->op == '/');
@@ -283,7 +283,7 @@ START_TEST(test_parse_parenthesized)
 {
 	Parser *p;
 
-	p = p_init("files/test_parse_parenthesized.txt");
+	p = p_alloc("files/test_parse_parenthesized.txt");
 	ck_assert_msg(parse(p) == 0, "%s", p->err);
 
 	ck_assert(p->ast->sym->content->op == '/');
@@ -303,7 +303,7 @@ END_TEST
 START_TEST(test_parse_unbalanced_left_parenthesis)
 {
 	Parser *p;
-	p = p_init("files/test_parse_unbalanced_left_parenthesis.txt");
+	p = p_alloc("files/test_parse_unbalanced_left_parenthesis.txt");
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
 	ck_assert_str_eq(p->err, "files/test_parse_unbalanced_left_parenthesis.txt: unbalanced parenthesis\n");
@@ -314,7 +314,7 @@ END_TEST
 START_TEST(test_parse_unbalanced_right_parenthesis)
 {
 	Parser *p;
-	p = p_init("files/test_parse_unbalanced_right_parenthesis.txt");
+	p = p_alloc("files/test_parse_unbalanced_right_parenthesis.txt");
 
 	ck_assert_msg(parse(p) < 0, "Parser should fail but it doesn't");
 	ck_assert_str_eq(p->err, "files/test_parse_unbalanced_right_parenthesis.txt: unbalanced parenthesis\n");
@@ -325,7 +325,7 @@ END_TEST
 START_TEST(test_parse_unknown_func)
 {
 	Parser *p;
-	p = p_init("files/test_parse_unknown_func.txt");
+	p = p_alloc("files/test_parse_unknown_func.txt");
 
 	ck_assert(parse(p) < 0);
 	ck_assert_str_eq(p->err, "files/test_parse_unknown_func.txt: unknown function stupidfunc\n");
@@ -354,8 +354,8 @@ parse_suite(void)
 	tc_lex = tcase_create("lex");
 	tc_parse = tcase_create("parse");
 
-	tcase_add_test(tc_lex, test_l_init_non_exist);
-	tcase_add_test(tc_lex, test_l_init_exist);
+	tcase_add_test(tc_lex, test_l_alloc_non_exist);
+	tcase_add_test(tc_lex, test_l_alloc_exist);
 	tcase_add_test(tc_lex, test_lex_full);
 	tcase_add_test(tc_lex, test_lex_lparen);
 	tcase_add_test(tc_lex, test_lex_number);
