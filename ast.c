@@ -354,10 +354,6 @@ symbol_copy(Symbol *src)
 	dest = NULL;
 	switch(src->type) {
 	case S_FUNC:
-		/* TODO: Fix this
-		 * symbol_copy tries to free symbol->content.func, so heap
-		 * allocate this
-		 */
 		dest = func_alloc(bit_to_func(src->content.func));
 		break;
 	case S_OP:
