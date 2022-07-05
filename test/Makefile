@@ -14,7 +14,7 @@ test_ast: test_ast.c ../ast.o ../util.o ../parse.o
 
 test_parse: test_parse.c ../parse.o ../util.o ../ast.o
 
-test_dwrt: test_dwrt.c ../ast.o ../util.o ../parse.o
+test_dwrt: test_dwrt.c ../ast.o ../util.o ../parse.o ../ast_nodes.o
 
 test: $(TESTS)
 	for t in $(TESTS); do ./$$t ; done

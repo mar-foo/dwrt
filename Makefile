@@ -1,7 +1,7 @@
 CFLAGS = -Wall -Wextra -Werror -pedantic -ansi -D_POSIX_C_SOURCE=200809L
-LDFLAGS = -lm
+LDFLAGS =
 TARG = dwrt
-OBJ = parse.o util.o ast.o dwrt.o
+OBJ = parse.o util.o ast.o dwrt.o ast_nodes.o
 SRC = $(OBJ:%.o=%.c)
 PREFIX = /usr/local
 
@@ -14,6 +14,9 @@ ifeq (${COV}, 1)
 endif
 
 all: $(TARG)
+
+ast_nodes.o: ast_nodes.c
+	$(CC) $(CFLAGS) -lm -o $@ -c $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -c $^

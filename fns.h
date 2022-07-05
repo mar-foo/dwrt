@@ -20,10 +20,23 @@
 
 Node*	ast_alloc(Symbol*);
 Node*	ast_copy(Node*);
+Node*	ast_cos(Node*);
+Node*	ast_cosh(Node*);
 Node*	ast_dwrt(Node*, char);
+Node*	ast_exp(Node*);
+Node*	ast_expt(Node*, Node*);
+Node*	ast_frac(Node*, Node*);
 void	ast_free(Node*);
+Node*	ast_log(Node*);
+Node*	ast_mul(Node*, Node*);
 void 	ast_insert(Node*, Node*);
 void	ast_print(Node*);
+Node*	ast_sin(Node*);
+Node*	ast_sinh(Node*);
+Node*	ast_sub(Node*, Node*);
+Node*	ast_sum(Node*, Node*);
+Node*	ast_tan(Node*);
+Node*	ast_tanh(Node*);
 void	ast_to_latex(Node*);
 void*	ecalloc(long, size_t);
 void*	emalloc(size_t);
