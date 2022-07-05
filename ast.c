@@ -197,6 +197,14 @@ func_alloc(char *func)
 	return sym;
 }
 
+int
+is_same_var(Symbol *sym, char var)
+{
+	if(sym->type != S_VAR)
+		return 0;
+	return sym->content->var == var;
+}
+
 Symbol*
 lparen_alloc(void)
 {

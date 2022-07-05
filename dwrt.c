@@ -28,7 +28,6 @@
 
 static Node*	ast_dwrt_func(Node*, char);
 static Node*	ast_dwrt_op(Node*, char);
-static int	is_same_var(Symbol*, char);
 
 /*
  * TODO: symplify numerical expressions
@@ -142,11 +141,3 @@ ast_dwrt_op(Node *ast, char var)
 }
 
 
-
-static int
-is_same_var(Symbol *sym, char var)
-{
-	if(sym->type != S_VAR)
-		return 0;
-	return sym->content->var == var;
-}
