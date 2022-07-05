@@ -361,7 +361,7 @@ symbol_copy(Symbol *src)
 		dest = func_alloc(bit_to_func(src->content.func));
 		break;
 	case S_OP:
-		dest = operator_alloc(src->content.func);
+		dest = operator_alloc(bit_to_op(src->content.func));
 		break;
 	case S_VAR:
 		dest = var_alloc(src->content.var);
