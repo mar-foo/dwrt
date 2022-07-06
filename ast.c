@@ -109,7 +109,11 @@ ast_print_rec(Node *node, Symbol *previous)
 		printf("%c", node->sym->content.var);
 		return;
 	case S_NUM:
+		if(node->sym->content.num < 0)
+			printf("(");
 		printf("%.2f", node->sym->content.num);
+		if(node->sym->content.num < 0)
+			printf(")");
 		return;
 	case S_FUNC:
 		printf("%s(", bit_to_func(node->sym->content.func));
@@ -150,7 +154,11 @@ ast_to_latex_rec(Node *ast, Symbol *previous)
 		printf("%c", ast->sym->content.var);
 		return;
 	case S_NUM:
+		if(ast->sym->content.num < 0)
+			printf("\\left(");
 		printf("%.2f", ast->sym->content.num);
+		if(ast->sym->content.num < 0)
+			printf("\\right)");
 		return;
 	case S_FUNC:
 		printf("\\%s\\left(", bit_to_func(ast->sym->content.func));
