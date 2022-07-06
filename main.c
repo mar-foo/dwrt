@@ -49,7 +49,13 @@ main(int argc, char *argv[])
 			break;
 		default:
 			usage(argv[0]);
+				exit(1);
 		}
+	}
+
+	if(argc < (lflag ? 3 : 2)) {
+		usage(argv[0]);
+		exit(1);
 	}
 
 	p = p_alloc(NULL);
@@ -61,6 +67,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
+	/* Fix: check there's an argument at the end of parameter list */
 	diff = ast_dwrt(p->ast, argv[optind][0]);
 	if(lflag)
 		ast_to_latex(diff);
